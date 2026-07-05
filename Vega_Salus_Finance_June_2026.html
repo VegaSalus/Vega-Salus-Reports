@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vega Salus Finance — June 2026 Series</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{background:#000;color:#fff;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;min-height:100vh}
+:root{
+  --surface:#0d0d0d;--surface2:#161616;
+  --border:#222;--border2:#333;
+  --text2:#aaa;--text3:#555;
+  --green:#22c55e;--red:#ef4444;--amber:#f59e0b;--blue:#60a5fa;
+}
+.page{max-width:1280px;margin:0 auto;padding:32px 24px 64px}
+@media(max-width:600px){.page{padding:20px 14px 48px}}
+
+/* HEADER */
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.hdr-name{font-size:20px;font-weight:700;letter-spacing:.02em}
+@media(max-width:600px){.hdr-name{font-size:17px}}
+.hdr-sub{margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+.hdr-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hdr-period{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)}
+.hdr-live{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--text3)}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);margin-bottom:20px}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi{padding:16px 16px 14px;border-right:1px solid var(--border);background:var(--surface)}
+.kpi:last-child{border-right:none}
+@media(max-width:700px){.kpi:nth-child(2){border-right:none}.kpi:nth-child(3){border-top:1px solid var(--border)}.kpi:nth-child(4){border-top:1px solid var(--border)}}
+.kpi-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:9px}
+.kpi-val{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1}
+@media(max-width:600px){.kpi-val{font-size:18px}}
+.kpi-val.pos{color:var(--green)}.kpi-val.neg{color:var(--red)}.kpi-val.amb{color:var(--amber)}.kpi-val.wht{color:#fff}
+.kpi-sub{margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
+
+/* PANELS */
+.panel{background:#000;overflow:hidden}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:11px 16px 9px;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap;gap:6px}
+.ph-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2)}
+.ph-note{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.pb{padding:12px 14px}
+.leg{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.05em}
+.leg-line{width:18px;height:2px;border-radius:1px}
+
+/* CHARTS ROW */
+.chart-row{display:grid;grid-template-columns:62% 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:20px}
+@media(max-width:800px){.chart-row{grid-template-columns:1fr}}
+
+/* TRADE TABLE */
+.tbl-panel{background:#000;border:1px solid var(--border);margin-bottom:20px}
+.tbl-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px 9px;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap;gap:8px}
+.tbl-hint{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:700px}
+thead th{padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);text-align:left;white-space:nowrap;background:var(--surface);border-bottom:1px solid var(--border);font-weight:400}
+thead th.r{text-align:right}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+tbody tr.row-active{background:rgba(255,255,255,.05)}
+tbody td{padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap;color:var(--text2)}
+tbody td.pair-cell{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#fff}
+tbody td.r{text-align:right}
+tfoot td{padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;border-top:1px solid var(--border2);background:var(--surface);color:#fff;font-weight:600}
+tfoot td.r{text-align:right}
+
+/* TAGS */
+.tag{display:inline-block;padding:2px 7px;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+.tag-mean{color:var(--green);border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.06)}
+.tag-time{color:var(--amber);border:1px solid rgba(245,158,11,.25);background:rgba(245,158,11,.06)}
+.tag-stop{color:var(--red);border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.06)}
+.tag-mtf{color:var(--blue);border:1px solid rgba(96,165,250,.25);background:rgba(96,165,250,.06)}
+.tag-fut{color:var(--text2);border:1px solid var(--border2);background:rgba(255,255,255,.03)}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}
+
+/* FOOTER */
+.footer{margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.footer-txt{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);width:100%;max-width:880px;position:relative;box-shadow:0 0 0 1px #333,0 32px 64px rgba(0,0,0,.8);animation:mIn .18s ease;margin:auto}
+@media(max-width:600px){.modal{margin:0}}
+@keyframes mIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.m-close{position:absolute;top:12px;right:12px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);cursor:pointer;border:1px solid var(--border);padding:4px 9px;background:var(--surface2);transition:color .15s,border-color .15s;z-index:5}
+.m-close:hover{color:#fff;border-color:var(--border2)}
+.m-hdr{padding:18px 18px 14px;border-bottom:1px solid var(--border);padding-right:72px}
+.m-pair{font-size:16px;font-weight:700;letter-spacing:-.01em;color:#fff;margin-bottom:8px}
+@media(max-width:600px){.m-pair{font-size:14px}}
+.m-tags{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.m-meta{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase}
+
+/* MODAL BODY */
+.m-body{padding:18px}
+@media(max-width:600px){.m-body{padding:12px}}
+
+/* LEG BOXES */
+.modal-legs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:600px){.modal-legs{grid-template-columns:1fr}}
+.leg-box{border:1px solid var(--border);padding:13px}
+.leg-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.leg-stock{font-size:15px;font-weight:700;margin-bottom:10px}
+.leg-rows{display:grid;grid-template-columns:1fr auto;gap:4px 0;font-size:11px}
+.leg-row-label{color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:10px}
+.leg-row-val{text-align:right;font-family:'JetBrains Mono',monospace;font-weight:500}
+
+/* PNL SUMMARY */
+.modal-pnl-summary{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);margin-bottom:16px}
+@media(max-width:600px){.modal-pnl-summary{grid-template-columns:repeat(2,1fr)}}
+.mpnl-cell{padding:12px 13px;border-right:1px solid var(--border)}
+.mpnl-cell:last-child{border-right:none}
+@media(max-width:600px){.mpnl-cell:nth-child(2){border-right:none}.mpnl-cell:nth-child(3){border-top:1px solid var(--border)}.mpnl-cell:nth-child(4){border-top:1px solid var(--border)}}
+.mpnl-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.mpnl-val{font-size:15px;font-weight:700}
+
+/* CHARGES */
+.charges-section{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:600px){.charges-section{grid-template-columns:1fr}}
+.chg-box{border:1px solid var(--border);padding:12px 13px}
+.chg-box-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.chg-row{display:flex;justify-content:space-between;padding:2px 0;font-size:11px;font-family:'JetBrains Mono',monospace}
+.chg-row-label{color:var(--text2)}
+.chg-row-val{font-weight:500;color:#fff}
+.chg-row.total{border-top:1px solid var(--border2);margin-top:5px;padding-top:6px;font-size:12px;font-weight:600}
+.chg-row.total .chg-row-val{color:var(--red)}
+.interest-note{font-size:9px;color:var(--text3);margin-top:6px;padding-top:5px;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;line-height:1.6}
+
+/* MODAL CHART */
+.m-chart-sec{border:1px solid var(--border);padding:14px 14px 16px}
+.m-chart-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.m-chart-leg{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+.m-leg-item{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:10px}
+.m-chart-wrap{position:relative;height:260px}
+@media(max-width:600px){.m-chart-wrap{height:200px}}
+
+.fade{opacity:0;transform:translateY(8px);animation:fIn .35s ease forwards}
+@keyframes fIn{to{opacity:1;transform:none}}
+.fade:nth-child(1){animation-delay:.04s}.fade:nth-child(2){animation-delay:.08s}
+.fade:nth-child(3){animation-delay:.12s}.fade:nth-child(4){animation-delay:.16s}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="hdr fade">
+    <div>
+      <div class="hdr-name">Vega Salus Finance</div>
+      <div class="hdr-sub">Statistical Arbitrage &nbsp;·&nbsp; June Series Performance Report</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-period">June 2026 Series</div>
+      <div class="hdr-live"><div class="live-dot"></div>Series Closed</div>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row fade" id="kpiRow"></div>
+
+  <!-- EQUITY + DAILY P&L -->
+  <div class="chart-row fade">
+    <div class="panel">
+      <div class="ph">
+        <div class="ph-title">Equity Curve — Daily MTM</div>
+        <div class="leg">
+          <div class="leg-item"><div class="leg-line" style="background:var(--green)"></div>Strategy %</div>
+          <div class="leg-item"><div class="leg-line" style="background:rgba(255,255,255,.3);border-top:1px dashed rgba(255,255,255,.3)"></div>Nifty 50 %</div>
+        </div>
+      </div>
+      <div class="pb"><canvas id="eqChart" height="190"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><div class="ph-title">Daily MTM P&amp;L</div><div class="ph-note">₹ per session</div></div>
+      <div class="pb"><canvas id="barChart" height="190"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TRADE TABLE -->
+  <div class="tbl-panel fade">
+    <div class="tbl-hdr">
+      <div class="ph-title">Trade Log &nbsp;<span style="color:var(--text3);font-weight:400">13 Pairs · All Closed</span></div>
+      <div class="tbl-hint">↗ Tap row for full breakdown</div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Pair</th><th>Long</th><th>Short</th>
+          <th>Entry</th><th>Exit</th><th>Days</th>
+          <th>Exit Type</th>
+          <th class="r">Gross P&amp;L</th><th class="r">Charges</th><th class="r">Net P&amp;L</th>
+        </tr></thead>
+        <tbody id="tBody"></tbody>
+        <tfoot id="tFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer fade">
+    <div class="footer-txt">Vega Salus Finance &nbsp;·&nbsp; Statistical Arbitrage</div>
+    <div class="footer-txt">June Series &nbsp;·&nbsp; Capital ₹50,00,000 &nbsp;·&nbsp; P&L net of all Zerodha charges</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="m-close" onclick="closeModal()">✕ Close</div>
+    <div class="m-hdr">
+      <div class="m-pair" id="mPair">—</div>
+      <div class="m-tags" id="mTags"></div>
+    </div>
+    <div class="m-body" id="mBody"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────
+const TRADES=[{"pair_id":1,"instrument":"MTF","long_stock":"TATACONSUM","short_stock":"GRASIM","long_leg_type":"MTF","short_leg_type":"FUTURE","long_buy":1187.5999755859375,"long_sell":1123.2,"long_qty":667,"long_pnl":-42954.78,"short_buy":3148.4,"short_sell":3165,"short_qty":250,"short_pnl":4150.0,"exit_type":"TIME_EXIT","exit_label":"Time Exit","days":30,"entry_date":"26-May","exit_date":"25-Jun","gross_pnl":-38804.78,"long_charges_total":9144.5,"short_charges_total":494.51,"total_charges":9639.01,"net_pnl":-48443.79,"long_charges_detail":{"brokerage":40,"stt":1541.3,"transaction":47.32,"stamp":118.82,"sebi":1.54,"gst":15.99,"dp":15.34,"pledge_unpledge":35.4,"interest":7328.78,"margin_pct":22.9,"funded":610731.6,"cal_days":30,"total":9144.5},"short_charges_detail":{"brokerage":40,"stt":395.62,"transaction":28.88,"stamp":15.74,"sebi":1.58,"gst":12.68,"total":494.51},"chart_labels":["26-May","27-May","29-May","01-Jun","02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun","25-Jun"],"long_series":[0.0,11605.82,-6403.18,-29748.18,-21744.18,-29081.18,-25746.18,-37752.18,-53760.18,-53760.18,-53093.18,-52426.18,-57762.18,-58429.18,-37752.18,-41754.18,-51092.18,-50425.18,-49758.18,-55761.18,-59763.18,-42954.78],"short_series":[0,-1250,10750,15500,16750,15750,15250,19250,28750,17250,23500,18750,14750,0,6250,3750,5000,3750,-2500,5250,9250,4150.0],"combined_series":[0.0,10355.82,4346.82,-14248.18,-4994.18,-13331.18,-10496.18,-18502.18,-25010.18,-36510.18,-29593.18,-33676.18,-43012.18,-58429.18,-31502.18,-38004.18,-46092.18,-46675.18,-52258.18,-50511.18,-50513.18,-38804.78],"display_num":1},{"pair_id":3,"instrument":"Future","long_stock":"POWERGRID","short_stock":"JSWENERGY","long_leg_type":"FUTURE","short_leg_type":"FUTURE","long_buy":300.1499938964844,"long_sell":284.65,"long_qty":1900,"long_pnl":-29449.99,"short_buy":574.35,"short_sell":602.0499877929688,"short_qty":1000,"short_pnl":27699.99,"exit_type":"TIME_EXIT","exit_label":"Time Exit","days":29,"entry_date":"27-May","exit_date":"25-Jun","gross_pnl":-1750.0,"long_charges_total":354.33,"short_charges_total":386.5,"total_charges":740.83,"net_pnl":-2490.83,"long_charges_detail":{"brokerage":40,"stt":270.42,"transaction":20.33,"stamp":11.41,"sebi":1.11,"gst":11.06,"total":354.33},"short_charges_detail":{"brokerage":40,"stt":301.02,"transaction":21.53,"stamp":11.49,"sebi":1.18,"gst":11.29,"total":386.5},"chart_labels":["27-May","29-May","01-Jun","02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun","25-Jun"],"long_series":[0.0,-17384.99,-26884.99,-34484.99,-28784.99,-28784.99,-26884.99,-19284.99,-26884.99,-24984.99,-24984.99,-28784.99,-26884.99,-28784.99,-26884.99,-21184.99,-15484.99,-19284.99,-15484.99,-17384.99,-29449.99],"short_series":[0.0,7049.99,19049.99,13049.99,22049.99,14049.99,18049.99,31049.99,32049.99,41049.99,50049.99,43049.99,36049.99,40049.99,30049.99,26049.99,32049.99,20049.99,33049.99,28049.99,27699.99],"combined_series":[0.0,-10335.0,-7835.0,-21435.0,-6735.0,-14735.0,-8835.0,11765.0,5165.0,16065.0,25065.0,14265.0,9165.0,11265.0,3165.0,4865.0,16565.0,765.0,17565.0,10665.0,-1750.0],"display_num":2},{"pair_id":5,"instrument":"MTF","long_stock":"RVNL","short_stock":"INDHOTEL","long_leg_type":"MTF","short_leg_type":"FUTURE","long_buy":252.3000030517578,"long_sell":239.98,"long_qty":2647,"long_pnl":-32611.05,"short_buy":727.9,"short_sell":667.7000122070312,"short_qty":1000,"short_pnl":-60199.99,"exit_type":"STOP_LOSS","exit_label":"Stop Loss","days":28,"entry_date":"27-May","exit_date":"24-Jun","gross_pnl":-92811.04,"long_charges_total":6815.69,"short_charges_total":427.39,"total_charges":7243.08,"net_pnl":-100054.12,"long_charges_detail":{"brokerage":40,"stt":1303.07,"transaction":40.0,"stamp":100.18,"sebi":1.3,"gst":14.64,"dp":15.34,"pledge_unpledge":35.4,"interest":5265.77,"margin_pct":29.6,"funded":470158.03,"cal_days":28,"total":6815.69},"short_charges_detail":{"brokerage":40,"stt":333.85,"transaction":25.54,"stamp":14.56,"sebi":1.4,"gst":12.05,"total":427.39},"chart_labels":["27-May","29-May","01-Jun","02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun"],"long_series":[0.0,-19323.11,-27264.11,-29911.11,-35205.11,-43146.11,-43146.11,-64322.11,-48440.11,-64322.11,-80204.11,-51087.11,-32558.11,-29911.11,-19323.11,-11382.11,-21970.11,-16676.11,-32558.11,-32611.05],"short_series":[0.0,13700.01,20700.01,5700.01,11700.01,5700.01,9700.01,15700.01,700.01,1700.01,11700.01,-11299.99,-22299.99,-26299.99,-31299.99,-42299.99,-57299.99,-65299.99,-56299.99,-60199.99],"combined_series":[0.0,-5623.1,-6564.1,-24211.1,-23505.1,-37446.1,-33446.1,-48622.1,-47740.1,-62622.1,-68504.1,-62387.1,-54858.1,-56211.1,-50623.1,-53682.1,-79270.1,-81976.1,-88858.1,-92811.04],"display_num":3},{"pair_id":12,"instrument":"MTF","long_stock":"SONACOMS","short_stock":"CUMMINSIND","long_leg_type":"MTF","short_leg_type":"FUTURE","long_buy":618.7000122070312,"long_sell":618.6,"long_qty":1949,"long_pnl":-194.92,"short_buy":5614.5,"short_sell":6027.5,"short_qty":200,"short_pnl":82600,"exit_type":"MEAN_REVERSION","exit_label":"Mean Reversion","days":28,"entry_date":"27-May","exit_date":"24-Jun","gross_pnl":82405.08,"long_charges_total":12747.56,"short_charges_total":725.43,"total_charges":13472.99,"net_pnl":68932.09,"long_charges_detail":{"brokerage":40,"stt":2411.5,"transaction":74.03,"stamp":180.88,"sebi":2.41,"gst":20.96,"dp":15.34,"pledge_unpledge":35.4,"interest":9967.04,"margin_pct":26.2,"funded":889914.59,"cal_days":28,"total":12747.56},"short_charges_detail":{"brokerage":40,"stt":602.75,"transaction":42.61,"stamp":22.46,"sebi":2.33,"gst":15.29,"total":725.43},"chart_labels":["27-May","29-May","01-Jun","02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun"],"long_series":[0.0,-22803.32,-36446.32,-15007.32,-30599.32,-34497.32,-32548.32,-59834.32,-32548.32,-57885.32,-65681.32,-50089.32,-44242.32,-38395.32,-34497.32,-26701.32,-9160.32,4482.68,-5262.32,-194.92],"short_series":[0.0,29300.0,69300.0,63900.0,66900.0,47900.0,48700.0,83300.0,80300.0,83500.0,94100.0,81100.0,54700.0,60700.0,38900.0,33900.0,32500.0,52700.0,58300.0,82600.0],"combined_series":[0.0,6496.68,32853.68,48892.68,36300.68,13402.68,16151.68,23465.68,47751.68,25614.68,28418.68,31010.68,10457.68,22304.68,4402.68,7198.68,23339.68,57182.68,53037.68,82405.08],"display_num":4},{"pair_id":2,"instrument":"Future","long_stock":"M&M","short_stock":"MARUTI","long_leg_type":"FUTURE","short_leg_type":"FUTURE","long_buy":2999.9,"long_sell":3198.6,"long_qty":200,"long_pnl":39740.0,"short_buy":13760,"short_sell":13030,"short_qty":50,"short_pnl":-36500,"exit_type":"TIME_EXIT","exit_label":"Time Exit","days":24,"entry_date":"01-Jun","exit_date":"25-Jun","gross_pnl":3240.0,"long_charges_total":407.29,"short_charges_total":417.22,"total_charges":824.51,"net_pnl":2415.49,"long_charges_detail":{"brokerage":40,"stt":319.86,"transaction":22.69,"stamp":12.0,"sebi":1.24,"gst":11.51,"total":407.29},"short_charges_detail":{"brokerage":40,"stt":325.75,"transaction":24.51,"stamp":13.76,"sebi":1.34,"gst":11.85,"total":417.22},"chart_labels":["01-Jun","02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun","25-Jun"],"long_series":[0.0,-380.0,2220.0,3220.0,8220.0,-6780.0,-1980.0,-9380.0,220.0,8620.0,26820.0,27620.0,26620.0,27420.0,15020.0,12620.0,7420.0,13020.0,39740.0],"short_series":[0,400,-700,-1700,-1000,5900,-4500,-2150,-3400,-16800,-38750,-33050,-30000,-22700,-18250,-19550,-21050,-10900,-36500],"combined_series":[0.0,20.0,1520.0,1520.0,7220.0,-880.0,-6480.0,-11530.0,-3180.0,-8180.0,-11930.0,-5430.0,-3380.0,4720.0,-3230.0,-6930.0,-13630.0,2120.0,3240.0],"display_num":5},{"pair_id":4,"instrument":"Future","long_stock":"PIIND","short_stock":"BAJAJHLDNG","long_leg_type":"FUTURE","short_leg_type":"FUTURE","long_buy":2707.6,"long_sell":2714.2,"long_qty":175,"long_pnl":1155.0,"short_buy":10680,"short_sell":10390,"short_qty":50,"short_pnl":-14500,"exit_type":"TIME_EXIT","exit_label":"Time Exit","days":24,"entry_date":"01-Jun","exit_date":"25-Jun","gross_pnl":-13345.0,"long_charges_total":315.78,"short_charges_total":341.62,"total_charges":657.4,"net_pnl":-14002.4,"long_charges_detail":{"brokerage":40,"stt":237.49,"transaction":17.36,"stamp":9.48,"sebi":0.95,"gst":10.5,"total":315.78},"short_charges_detail":{"brokerage":40,"stt":259.75,"transaction":19.28,"stamp":10.68,"sebi":1.05,"gst":10.86,"total":341.62},"chart_labels":["01-Jun","02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun","25-Jun"],"long_series":[0.0,5670.0,5320.0,70.0,1820.0,-4655.0,27720.0,17570.0,16345.0,23520.0,22295.0,29820.0,22295.0,24220.0,16870.0,17220.0,10395.0,6895.0,1155.0],"short_series":[0,7500,10000,13150,9550,26100,6850,17750,26350,11450,5200,-3700,-5500,-14300,-14350,-25250,-11250,-9650,-14500],"combined_series":[0.0,13170.0,15320.0,13220.0,11370.0,21445.0,34570.0,35320.0,42695.0,34970.0,27495.0,26120.0,16795.0,9920.0,2520.0,-8030.0,-855.0,-2755.0,-13345.0],"display_num":6},{"pair_id":10,"instrument":"MTF","long_stock":"MCX","short_stock":"SAIL","long_leg_type":"MTF","short_leg_type":"FUTURE","long_buy":2889.4,"long_sell":2896.6,"long_qty":333,"long_pnl":2397.6,"short_buy":182.8,"short_sell":204.25,"short_qty":4700,"short_pnl":100815.0,"exit_type":"MEAN_REVERSION","exit_label":"Mean Reversion","days":14,"entry_date":"01-Jun","exit_date":"15-Jun","gross_pnl":103212.6,"long_charges_total":6072.05,"short_charges_total":585.8,"total_charges":6657.85,"net_pnl":96554.75,"long_charges_detail":{"brokerage":40,"stt":1926.74,"transaction":59.15,"stamp":144.33,"sebi":1.93,"gst":18.19,"dp":15.34,"pledge_unpledge":35.4,"interest":3830.98,"margin_pct":28.9,"funded":684103.01,"cal_days":14,"total":6072.05},"short_charges_detail":{"brokerage":40,"stt":479.99,"transaction":33.29,"stamp":17.18,"sebi":1.82,"gst":13.52,"total":585.8},"chart_labels":["01-Jun","02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun"],"long_series":[0.0,-3463.2,-18448.2,1531.8,-31435.2,-21778.2,-21445.2,-48418.2,-36763.2,-12121.2,2397.6],"short_series":[0.0,-8225.0,1175.0,34075.0,62275.0,95175.0,85775.0,104575.0,109275.0,95175.0,100815.0],"combined_series":[0.0,-11688.2,-17273.2,35606.8,30839.8,73396.8,64329.8,56156.8,72511.8,83053.8,103212.6],"display_num":7},{"pair_id":11,"instrument":"MTF","long_stock":"CHOLAFIN","short_stock":"LODHA","long_leg_type":"MTF","short_leg_type":"FUTURE","long_buy":1508.1,"long_sell":1652.6,"long_qty":271,"long_pnl":39159.5,"short_buy":932.7,"short_sell":907.35,"short_qty":450,"short_pnl":-11407.5,"exit_type":"MEAN_REVERSION","exit_label":"Mean Reversion","days":14,"entry_date":"01-Jun","exit_date":"15-Jun","gross_pnl":27752.0,"long_charges_total":2720.87,"short_charges_total":278.61,"total_charges":2999.48,"net_pnl":24752.52,"long_charges_detail":{"brokerage":40,"stt":856.55,"transaction":26.3,"stamp":61.3,"sebi":0.86,"gst":12.09,"dp":15.34,"pledge_unpledge":35.4,"interest":1673.03,"margin_pct":26.9,"funded":298756.12,"cal_days":14,"total":2720.87},"short_charges_detail":{"brokerage":40,"stt":204.15,"transaction":15.15,"stamp":8.39,"sebi":0.83,"gst":10.08,"total":278.61},"chart_labels":["01-Jun","02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun"],"long_series":[0.0,-6802.1,-10054.1,-5989.1,-1382.1,-14119.1,-3550.1,-9512.1,-14390.1,16232.9,39159.5],"short_series":[0.0,1507.5,12757.5,11407.5,6007.5,16357.5,8707.5,20407.5,17707.5,3757.5,-11407.5],"combined_series":[0.0,-5294.6,2703.4,5418.4,4625.4,2238.4,5157.4,10895.4,3317.4,19990.4,27752.0],"display_num":8},{"pair_id":13,"instrument":"MTF","long_stock":"NHPC","short_stock":"TATAPOWER","long_leg_type":"MTF","short_leg_type":"FUTURE","long_buy":72.29,"long_sell":78.22,"long_qty":8322,"long_pnl":49349.46,"short_buy":404.7,"short_sell":414.89,"short_qty":1450,"short_pnl":14775.5,"exit_type":"MEAN_REVERSION","exit_label":"Mean Reversion","days":20,"entry_date":"02-Jun","exit_date":"22-Jun","gross_pnl":64124.96,"long_charges_total":5101.97,"short_charges_total":386.8,"total_charges":5488.77,"net_pnl":58636.19,"long_charges_detail":{"brokerage":40,"stt":1252.54,"transaction":38.45,"stamp":90.24,"sebi":1.25,"gst":14.35,"dp":15.34,"pledge_unpledge":35.4,"interest":3614.4,"margin_pct":24.9,"funded":451799.63,"cal_days":20,"total":5101.97},"short_charges_detail":{"brokerage":40,"stt":300.8,"transaction":21.75,"stamp":11.74,"sebi":1.19,"gst":11.33,"total":386.8},"chart_labels":["02-Jun","03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun"],"long_series":[0.0,22552.62,30874.62,22552.62,14230.62,14230.62,5908.62,-2413.38,14230.62,22552.62,22552.62,14230.62,30874.62,30874.62,49349.46],"short_series":[0.0,4190.5,5640.5,8540.5,15790.5,23040.5,28840.5,36090.5,30290.5,15790.5,18690.5,18690.5,17240.5,18690.5,14775.5],"combined_series":[0.0,26743.12,36515.12,31093.12,30021.12,37271.12,34749.12,33677.12,44521.12,38343.12,41243.12,32921.12,48115.12,49565.12,64124.96],"display_num":9},{"pair_id":6,"instrument":"Future","long_stock":"BRITANNIA","short_stock":"SWIGGY","long_leg_type":"FUTURE","short_leg_type":"FUTURE","long_buy":5064,"long_sell":5219.5,"long_qty":125,"long_pnl":19437.5,"short_buy":243.25,"short_sell":251.8,"short_qty":2600,"short_pnl":22230.0,"exit_type":"TIME_EXIT","exit_label":"Time Exit","days":22,"entry_date":"03-Jun","exit_date":"25-Jun","gross_pnl":41667.5,"long_charges_total":415.35,"short_charges_total":416.5,"total_charges":831.85,"net_pnl":40835.65,"long_charges_detail":{"brokerage":40,"stt":326.22,"transaction":23.52,"stamp":12.66,"sebi":1.29,"gst":11.67,"total":415.35},"short_charges_detail":{"brokerage":40,"stt":327.34,"transaction":23.55,"stamp":12.65,"sebi":1.29,"gst":11.67,"total":416.5},"chart_labels":["03-Jun","04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun","25-Jun"],"long_series":[0,3250,7125,1875,5500,13375,6125,12750,17000,19250,21000,22625,16375,19250,22125,24875,19437.5],"short_series":[0.0,-5720.0,2080.0,28080.0,4680.0,25480.0,30680.0,4680.0,-13520.0,-21320.0,-18720.0,-10920.0,-5720.0,-8320.0,4680.0,20280.0,22230.0],"combined_series":[0.0,-2470.0,9205.0,29955.0,10180.0,38855.0,36805.0,17430.0,3480.0,-2070.0,2280.0,11705.0,10655.0,10930.0,26805.0,45155.0,41667.5],"display_num":10},{"pair_id":7,"instrument":"MTF","long_stock":"POLICYBZR","short_stock":"MOTILALOFS","long_leg_type":"MTF","short_leg_type":"FUTURE","long_buy":1536.300048828125,"long_sell":1602.4,"long_qty":435,"long_pnl":28753.48,"short_buy":948.65,"short_sell":861.2000122070312,"short_qty":775,"short_pnl":-67773.74,"exit_type":"TIME_EXIT","exit_label":"Time Exit","days":21,"entry_date":"04-Jun","exit_date":"25-Jun","gross_pnl":-39020.26,"long_charges_total":5684.48,"short_charges_total":427.56,"total_charges":6112.04,"net_pnl":-45132.3,"long_charges_detail":{"brokerage":40,"stt":1365.33,"transaction":41.92,"stamp":100.24,"sebi":1.37,"gst":14.99,"dp":15.34,"pledge_unpledge":35.4,"interest":4069.89,"margin_pct":27.5,"funded":484510.63,"cal_days":21,"total":5684.48},"short_charges_detail":{"brokerage":40,"stt":333.72,"transaction":25.67,"stamp":14.7,"sebi":1.4,"gst":12.07,"total":427.56},"chart_labels":["04-Jun","05-Jun","08-Jun","09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun","25-Jun"],"long_series":[0.0,-1000.52,-10570.52,-17095.52,-11440.52,-14050.52,5089.48,19444.48,26404.48,38584.48,35539.48,43804.48,57724.48,37279.48,43369.48,28753.48],"short_series":[0.0,4805.01,31155.01,-2169.99,15655.01,22630.01,-20769.99,-60294.99,-64169.99,-63394.99,-67269.99,-71144.99,-68044.99,-57969.99,-57194.99,-67773.74],"combined_series":[0.0,3804.49,20584.49,-19265.51,4214.49,8579.49,-15680.51,-40850.51,-37765.51,-24810.51,-31730.51,-27340.51,-10320.51,-20690.51,-13825.51,-39020.26],"display_num":11},{"pair_id":8,"instrument":"Future","long_stock":"ASHOKLEY","short_stock":"BANKBARODA","long_leg_type":"FUTURE","short_leg_type":"FUTURE","long_buy":143.8,"long_sell":161.17,"long_qty":5000,"long_pnl":86850.0,"short_buy":279.75,"short_sell":273.75,"short_qty":2925,"short_pnl":-17550,"exit_type":"TIME_EXIT","exit_label":"Time Exit","days":16,"entry_date":"09-Jun","exit_date":"25-Jun","gross_pnl":69300.0,"long_charges_total":499.23,"short_charges_total":500.8,"total_charges":1000.03,"net_pnl":68299.97,"long_charges_detail":{"brokerage":40,"stt":402.92,"transaction":27.9,"stamp":14.38,"sebi":1.52,"gst":12.5,"total":499.23},"short_charges_detail":{"brokerage":40,"stt":400.36,"transaction":29.63,"stamp":16.37,"sebi":1.62,"gst":12.82,"total":500.8},"chart_labels":["09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun","25-Jun"],"long_series":[0.0,-9000.0,-24000.0,41000.0,71000.0,76000.0,81000.0,71000.0,66000.0,66000.0,36000.0,56000.0,86850.0],"short_series":[0.0,13893.75,16818.75,-3656.25,-6581.25,-3656.25,-24131.25,-27056.25,-21206.25,-35831.25,-12431.25,-18281.25,-17550.0],"combined_series":[0.0,4893.75,-7181.25,37343.75,64418.75,72343.75,56868.75,43943.75,44793.75,30168.75,23568.75,37718.75,69300.0],"display_num":12},{"pair_id":9,"instrument":"Future","long_stock":"FORCEMOT","short_stock":"INDIANB","long_leg_type":"FUTURE","short_leg_type":"FUTURE","long_buy":17643,"long_sell":18480,"long_qty":50,"long_pnl":41850,"short_buy":836.25,"short_sell":874.95,"short_qty":1000,"short_pnl":38700.0,"exit_type":"TIME_EXIT","exit_label":"Time Exit","days":16,"entry_date":"09-Jun","exit_date":"25-Jun","gross_pnl":80550.0,"long_charges_total":567.98,"short_charges_total":540.37,"total_charges":1108.35,"net_pnl":79441.65,"long_charges_detail":{"brokerage":40,"stt":462.0,"transaction":33.05,"stamp":17.64,"sebi":1.81,"gst":13.47,"total":567.98},"short_charges_detail":{"brokerage":40,"stt":437.48,"transaction":31.31,"stamp":16.73,"sebi":1.71,"gst":13.14,"total":540.37},"chart_labels":["09-Jun","10-Jun","11-Jun","12-Jun","15-Jun","16-Jun","17-Jun","18-Jun","19-Jun","22-Jun","23-Jun","24-Jun","25-Jun"],"long_series":[0,-14000,-27450,12450,44850,39200,52400,50950,49700,44000,18850,15200,41850],"short_series":[0.0,41950.0,48950.0,28950.0,24950.0,21950.0,-1050.0,-1050.0,4950.0,13950.0,28950.0,30950.0,38700.0],"combined_series":[0.0,27950.0,21500.0,41400.0,69800.0,61150.0,51350.0,49900.0,54650.0,57950.0,47800.0,46150.0,80550.0],"display_num":13}];
+const PORTFOLIO=[{"date":"2026-06-01","cum_mtm":4206.4,"daily_pnl":4206.4,"cum_pct":0.0841,"nifty_close":23382.6,"nifty_pct":0.0},{"date":"2026-06-02","cum_mtm":-5540.4,"daily_pnl":-9746.8,"cum_pct":-0.1108,"nifty_close":23483.55,"nifty_pct":0.4317},{"date":"2026-06-03","cum_mtm":21742.72,"daily_pnl":27283.12,"cum_pct":0.4349,"nifty_close":23405.6,"nifty_pct":0.0984},{"date":"2026-06-04","cum_mtm":40535.72,"daily_pnl":18793.0,"cum_pct":0.8107,"nifty_close":23416.55,"nifty_pct":0.1452},{"date":"2026-06-05","cum_mtm":53526.21,"daily_pnl":12990.49,"cum_pct":1.0705,"nifty_close":23366.7,"nifty_pct":-0.068},{"date":"2026-06-08","cum_mtm":138359.21,"daily_pnl":84833.0,"cum_pct":2.7672,"nifty_close":23123,"nifty_pct":-1.1102},{"date":"2026-06-09","cum_mtm":94429.21,"daily_pnl":-43930.0,"cum_pct":1.8886,"nifty_close":23242.1,"nifty_pct":-0.6009},{"date":"2026-06-10","cum_mtm":150968.96,"daily_pnl":56539.75,"cum_pct":3.0194,"nifty_close":23214.95,"nifty_pct":-0.717},{"date":"2026-06-11","cum_mtm":160027.96,"daily_pnl":9059.0,"cum_pct":3.2006,"nifty_close":23161.6,"nifty_pct":-0.9451},{"date":"2026-06-12","cum_mtm":194724.96,"daily_pnl":34697.0,"cum_pct":3.8945,"nifty_close":23622.9,"nifty_pct":1.0277},{"date":"2026-06-15","cum_mtm":188056.36,"daily_pnl":-6668.6,"cum_pct":3.7611,"nifty_close":23853.9,"nifty_pct":2.0156},{"date":"2026-06-16","cum_mtm":232412.36,"daily_pnl":44356.0,"cum_pct":4.6482,"nifty_close":23989.15,"nifty_pct":2.594},{"date":"2026-06-17","cum_mtm":181929.36,"daily_pnl":-50483.0,"cum_pct":3.6386,"nifty_close":24085.7,"nifty_pct":3.0069},{"date":"2026-06-18","cum_mtm":179827.36,"daily_pnl":-2102.0,"cum_pct":3.5965,"nifty_close":24168,"nifty_pct":3.3589},{"date":"2026-06-19","cum_mtm":176537.36,"daily_pnl":-3290.0,"cum_pct":3.5307,"nifty_close":24013.1,"nifty_pct":2.6964},{"date":"2026-06-22","cum_mtm":192571.2,"daily_pnl":16033.84,"cum_pct":3.8514,"nifty_close":24102.9,"nifty_pct":3.0805},{"date":"2026-06-23","cum_mtm":189321.2,"daily_pnl":-3250.0,"cum_pct":3.7864,"nifty_close":23824.1,"nifty_pct":1.8882},{"date":"2026-06-24","cum_mtm":259398.66,"daily_pnl":70077.46,"cum_pct":5.188,"nifty_close":24021.65,"nifty_pct":2.733},{"date":"2026-06-25","cum_mtm":286521.06,"daily_pnl":27122.4,"cum_pct":5.7304,"nifty_close":24056,"nifty_pct":2.8799},{"date":"2026-06-29","cum_mtm":286521.06,"daily_pnl":0,"cum_pct":5.7304,"nifty_close":23946,"nifty_pct":2.4095},{"date":"2026-06-30","cum_mtm":286521.06,"daily_pnl":0,"cum_pct":5.7304,"nifty_close":23865,"nifty_pct":2.0631}];
+const SUMMARY={"capital":5000000,"total_gross":286521.06,"total_charges":56776.19,"total_net":229744.87,"gross_pct":5.7304,"net_pct":4.5949,"nifty_start":23382.6,"nifty_end":24056,"nifty_pct":2.8799,"alpha":1.715,"num_pairs":13};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const fmtR     = v=>(v>=0?'+₹':'−₹')+Math.abs(v).toLocaleString('en-IN',{maximumFractionDigits:0});
+const fmtRplain= v=>'₹'+Number(Math.abs(v)).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtP     = v=>'₹'+Number(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtQ     = v=>Number(v).toLocaleString('en-IN');
+const col      = v=>v>=0?'var(--green)':'var(--red)';
+
+Chart.defaults.color='#555';
+Chart.defaults.font.family="'JetBrains Mono',monospace";
+Chart.defaults.font.size=10;
+const TT={backgroundColor:'#111',borderColor:'#333',borderWidth:1,titleColor:'#777',bodyColor:'#ccc',padding:11};
+
+const GREEN='#22c55e', RED='#ef4444';
+const GREEN_FILL='rgba(34,197,94,.10)', RED_FILL='rgba(239,68,68,.10)';
+
+function segColor(ctx,green,red){
+  const{p0,p1}=ctx;
+  return (p0.parsed.y+p1.parsed.y)/2>=0?green:red;
+}
+
+// ── KPI ROW ───────────────────────────────────────────────────────────────────
+(function(){
+  const s=SUMMARY;
+  const kpis=[
+    {lbl:'Net Return',   val:(s.net_pct>=0?'+':'')+s.net_pct.toFixed(2)+'%',   cls:s.net_pct>=0?'pos':'neg', sub:fmtR(s.total_net)+' net on ₹50L'},
+    {lbl:'Nifty 50',     val:(s.nifty_pct>=0?'+':'')+s.nifty_pct.toFixed(2)+'%',cls:s.nifty_pct>=0?'pos':'neg',sub:s.nifty_start.toLocaleString('en-IN',{maximumFractionDigits:0})+' → '+s.nifty_end.toLocaleString('en-IN',{maximumFractionDigits:0})},
+    {lbl:'Alpha vs Index',val:(s.alpha>=0?'+':'')+s.alpha.toFixed(2)+'%',      cls:'amb', sub:s.alpha>=0?'Strategy outperformed':'Strategy underperformed'},
+    {lbl:'Pairs Closed', val:s.num_pairs,                                       cls:'wht', sub:'13 of 13 · Series complete'},
+  ];
+  document.getElementById('kpiRow').innerHTML=kpis.map(k=>`
+    <div class="kpi"><div class="kpi-lbl">${k.lbl}</div><div class="kpi-val ${k.cls}">${k.val}</div><div class="kpi-sub">${k.sub}</div></div>`).join('');
+})();
+
+// ── EQUITY CURVE ──────────────────────────────────────────────────────────────
+(function(){
+  const isMobile=window.innerWidth<600;
+  const labels=PORTFOLIO.map(d=>{
+    const dt=new Date(d.date);
+    // Show every 3rd label on mobile to avoid crowding
+    return dt.getDate().toString().padStart(2,'0')+'-'+dt.toLocaleString('en-US',{month:'short'});
+  });
+  const cumPct=PORTFOLIO.map(d=>d.cum_pct);
+  const niftyPct=PORTFOLIO.map(d=>d.nifty_pct);
+  const ctx=document.getElementById('eqChart').getContext('2d');
+  const gG=ctx.createLinearGradient(0,0,0,220);
+  gG.addColorStop(0,'rgba(34,197,94,.18)');gG.addColorStop(.6,'rgba(34,197,94,.03)');gG.addColorStop(1,'rgba(34,197,94,0)');
+  new Chart(ctx,{type:'line',data:{labels,datasets:[
+    {label:'Strategy',data:cumPct,borderColor:'#22c55e',borderWidth:2,backgroundColor:gG,fill:true,tension:.3,
+     pointRadius:isMobile?0:3,pointBackgroundColor:'#22c55e',pointBorderColor:'#000',pointBorderWidth:2,pointHoverRadius:5},
+    {label:'Nifty',data:niftyPct,borderColor:'rgba(255,255,255,.35)',borderWidth:1.5,borderDash:[4,4],
+     backgroundColor:'transparent',fill:false,tension:.3,
+     pointRadius:0,pointHoverRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>{const s=c.parsed.y>=0?'+':'';return ` ${c.dataset.label}: ${s}${c.parsed.y.toFixed(2)}%`;}}}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#444',maxRotation:45,autoSkip:true,maxTicksLimit:isMobile?7:14},border:{display:false}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},border:{display:false},ticks:{color:'#444',callback:v=>(v>=0?'+':'')+v.toFixed(1)+'%'}}
+    }
+  }});
+})();
+
+// ── DAILY BAR ─────────────────────────────────────────────────────────────────
+(function(){
+  const isMobile=window.innerWidth<600;
+  const labels=PORTFOLIO.map(d=>{
+    const dt=new Date(d.date);
+    return dt.getDate().toString().padStart(2,'0')+'-'+dt.toLocaleString('en-US',{month:'short'});
+  });
+  const dailyPnl=PORTFOLIO.map(d=>d.daily_pnl);
+  new Chart(document.getElementById('barChart'),{type:'bar',data:{labels,datasets:[{
+    data:dailyPnl,
+    backgroundColor:dailyPnl.map(v=>v>=0?'rgba(34,197,94,.55)':'rgba(239,68,68,.55)'),
+    borderColor:dailyPnl.map(v=>v>=0?'#22c55e':'#ef4444'),borderWidth:1,borderRadius:2
+  }]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>{const v=c.parsed.y;return ` ₹${v>=0?'+':''}${v.toLocaleString('en-IN',{maximumFractionDigits:0})}`;}}}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#444',maxRotation:45,autoSkip:true,maxTicksLimit:isMobile?6:12},border:{display:false}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},border:{display:false},ticks:{color:'#444',callback:v=>'₹'+(v/100000).toFixed(1)+'L'}}
+    }
+  }});
+})();
+
+// ── TRADE TABLE ───────────────────────────────────────────────────────────────
+(function(){
+  const body=document.getElementById('tBody');
+  TRADES.forEach((t,i)=>{
+    let exTag='';
+    if(t.exit_type==='MEAN_REVERSION') exTag=`<span class="tag tag-mean">Mean Reversion</span>`;
+    if(t.exit_type==='TIME_EXIT')      exTag=`<span class="tag tag-time">Time Exit</span>`;
+    if(t.exit_type==='STOP_LOSS')      exTag=`<span class="tag tag-stop">Stop Loss</span>`;
+    const gpc=t.gross_pnl>=0?'pos':'neg', npc=t.net_pnl>=0?'pos':'neg';
+    body.innerHTML+=`
+      <tr data-id="${i}" onclick="openModal(${i})">
+        <td style="color:var(--text3)">${String(t.display_num).padStart(2,'0')}</td>
+        <td class="pair-cell">${t.long_stock} / ${t.short_stock}</td>
+        <td><span style="color:var(--green);font-size:10px">${t.long_stock}</span></td>
+        <td><span style="color:var(--red);font-size:10px">${t.short_stock}</span></td>
+        <td>${t.entry_date}</td><td>${t.exit_date}</td><td>${t.days}d</td>
+        <td>${exTag}</td>
+        <td class="r ${gpc}">${fmtR(t.gross_pnl)}</td>
+        <td class="r" style="color:var(--text2)">−${fmtRplain(t.total_charges)}</td>
+        <td class="r ${npc}" style="font-weight:600">${fmtR(t.net_pnl)}</td>
+      </tr>`;
+  });
+  const s=SUMMARY;
+  document.getElementById('tFoot').innerHTML=`
+    <tr>
+      <td colspan="8" style="text-align:right;color:var(--text3);font-size:9px;letter-spacing:.08em;text-transform:uppercase">Total — 13 Pairs</td>
+      <td class="r ${s.total_gross>=0?'pos':'neg'}">${fmtR(s.total_gross)}</td>
+      <td class="r" style="color:var(--text2)">−${fmtRplain(s.total_charges)}</td>
+      <td class="r ${s.total_net>=0?'pos':'neg'}" style="font-size:12px">${fmtR(s.total_net)}</td>
+    </tr>`;
+})();
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+let pairChart=null;
+
+function openModal(id){
+  const t=TRADES[id];
+  document.querySelectorAll('#tBody tr').forEach(r=>r.classList.remove('row-active'));
+  document.querySelector(`tr[data-id="${id}"]`).classList.add('row-active');
+
+  document.getElementById('mPair').textContent=`${t.long_stock} / ${t.short_stock}`;
+
+  let exTag='';
+  if(t.exit_type==='MEAN_REVERSION') exTag='<span class="tag tag-mean">Mean Reversion</span>';
+  if(t.exit_type==='TIME_EXIT')      exTag='<span class="tag tag-time">Time Exit</span>';
+  if(t.exit_type==='STOP_LOSS')      exTag='<span class="tag tag-stop">Stop Loss</span>';
+  const instrTag=t.instrument==='MTF'?'<span class="tag tag-mtf">MTF + Future</span>':'<span class="tag tag-fut">Future + Future</span>';
+
+  document.getElementById('mTags').innerHTML=`${instrTag} ${exTag}
+    <span class="m-meta">Entry ${t.entry_date} &nbsp; Exit ${t.exit_date} &nbsp; ${t.days}d held</span>`;
+
+  const isMTF=t.instrument==='MTF';
+  const lc=t.long_charges_detail, sc=t.short_charges_detail;
+
+  const longTitle=isMTF?'▲ Long Leg — MTF Equity':'▲ Long Leg — Equity Future';
+  const shortTitle='▼ Short Leg — Equity Future';
+  const longVal=(t.long_buy*t.long_qty).toLocaleString('en-IN',{maximumFractionDigits:0});
+  const shortVal=(t.short_sell*t.short_qty).toLocaleString('en-IN',{maximumFractionDigits:0});
+
+  let longExtraRows='';
+  if(isMTF){
+    longExtraRows=`
+      <span class="leg-row-label">MTF Margin</span><span class="leg-row-val">${lc.margin_pct}%</span>
+      <span class="leg-row-label">Funded Amt</span><span class="leg-row-val">₹${lc.funded.toLocaleString('en-IN',{maximumFractionDigits:0})}</span>`;
+  }
+
+  // ── FIX 2: Long charges box LEFT, Short charges box RIGHT (consistent with leg order) ──
+  document.getElementById('mBody').innerHTML=`
+    <div class="modal-legs">
+      <div class="leg-box">
+        <div class="leg-title">${longTitle}</div>
+        <div class="leg-stock" style="color:var(--green)">${t.long_stock}</div>
+        <div class="leg-rows">
+          <span class="leg-row-label">Entry Price</span><span class="leg-row-val">${fmtP(t.long_buy)}</span>
+          <span class="leg-row-label">Exit Price</span><span class="leg-row-val">${fmtP(t.long_sell)}</span>
+          <span class="leg-row-label">Quantity</span><span class="leg-row-val">${fmtQ(t.long_qty)}</span>
+          <span class="leg-row-label">Position Value</span><span class="leg-row-val">₹${longVal}</span>
+          ${longExtraRows}
+          <span class="leg-row-label">Leg P&amp;L</span><span class="leg-row-val" style="color:${col(t.long_pnl)}">${fmtR(t.long_pnl)}</span>
+        </div>
+      </div>
+      <div class="leg-box">
+        <div class="leg-title">${shortTitle}</div>
+        <div class="leg-stock" style="color:var(--red)">${t.short_stock}</div>
+        <div class="leg-rows">
+          <span class="leg-row-label">Short Entry</span><span class="leg-row-val">${fmtP(t.short_sell)}</span>
+          <span class="leg-row-label">Cover Price</span><span class="leg-row-val">${fmtP(t.short_buy)}</span>
+          <span class="leg-row-label">Quantity</span><span class="leg-row-val">${fmtQ(t.short_qty)}</span>
+          <span class="leg-row-label">Contract Value</span><span class="leg-row-val">₹${shortVal}</span>
+          <span class="leg-row-label">Leg P&amp;L</span><span class="leg-row-val" style="color:${col(t.short_pnl)}">${fmtR(t.short_pnl)}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-pnl-summary">
+      <div class="mpnl-cell">
+        <div class="mpnl-label">Gross P&amp;L</div>
+        <div class="mpnl-val" style="color:${col(t.gross_pnl)}">${fmtR(t.gross_pnl)}</div>
+      </div>
+      <div class="mpnl-cell">
+        <div class="mpnl-label">${isMTF?'MTF Charges':'Long Charges'}</div>
+        <div class="mpnl-val" style="color:var(--red)">(${fmtRplain(t.long_charges_total)})</div>
+      </div>
+      <div class="mpnl-cell">
+        <div class="mpnl-label">Futures Charges</div>
+        <div class="mpnl-val" style="color:var(--red)">(${fmtRplain(t.short_charges_total)})</div>
+      </div>
+      <div class="mpnl-cell">
+        <div class="mpnl-label">Net P&amp;L</div>
+        <div class="mpnl-val" style="color:${col(t.net_pnl)};font-size:17px">${fmtR(t.net_pnl)}</div>
+      </div>
+    </div>
+
+    <div class="charges-section">
+      <div class="chg-box">
+        <div class="chg-box-title">${t.long_stock} (Long) — ${isMTF?'MTF':'Futures'} Charges</div>
+        <div class="chg-row"><span class="chg-row-label">Brokerage (2 orders)</span><span class="chg-row-val">${fmtRplain(lc.brokerage)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">STT (${isMTF?'0.1% buy+sell':'0.05% sell'})</span><span class="chg-row-val">${fmtRplain(lc.stt)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Transaction (${isMTF?'0.00307%':'0.00183%'})</span><span class="chg-row-val">${fmtRplain(lc.transaction)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Stamp (${isMTF?'0.015%':'0.002%'} buy)</span><span class="chg-row-val">${fmtRplain(lc.stamp)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">SEBI (₹10/cr)</span><span class="chg-row-val">${fmtRplain(lc.sebi)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">GST (18%)</span><span class="chg-row-val">${fmtRplain(lc.gst)}</span></div>
+        ${isMTF?`
+        <div class="chg-row"><span class="chg-row-label">DP Charge</span><span class="chg-row-val">${fmtRplain(lc.dp)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Pledge + Unpledge</span><span class="chg-row-val">${fmtRplain(lc.pledge_unpledge)}</span></div>
+        <div class="chg-row" style="color:var(--red)"><span class="chg-row-label" style="color:var(--red)">MTF Interest (${lc.cal_days}d × 0.04%)</span><span class="chg-row-val">${fmtRplain(lc.interest)}</span></div>`:''}
+        <div class="chg-row total"><span>Total</span><span class="chg-row-val">${fmtRplain(lc.total)}</span></div>
+        ${isMTF?`<div class="interest-note">Interest on funded ₹${lc.funded.toLocaleString('en-IN',{maximumFractionDigits:0})} @ ${lc.margin_pct}% margin · ${lc.cal_days} calendar days</div>`:''}
+      </div>
+      <div class="chg-box">
+        <div class="chg-box-title">${t.short_stock} (Short) — Futures Charges</div>
+        <div class="chg-row"><span class="chg-row-label">Brokerage (2 orders)</span><span class="chg-row-val">${fmtRplain(sc.brokerage)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">STT (0.05% sell)</span><span class="chg-row-val">${fmtRplain(sc.stt)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Transaction (0.00183%)</span><span class="chg-row-val">${fmtRplain(sc.transaction)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Stamp (0.002% buy)</span><span class="chg-row-val">${fmtRplain(sc.stamp)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">SEBI (₹10/cr)</span><span class="chg-row-val">${fmtRplain(sc.sebi)}</span></div>
+        <div class="chg-row"><span class="chg-row-label">GST (18%)</span><span class="chg-row-val">${fmtRplain(sc.gst)}</span></div>
+        <div class="chg-row total"><span>Total</span><span class="chg-row-val">${fmtRplain(sc.total)}</span></div>
+      </div>
+    </div>
+
+    <div class="m-chart-sec">
+      <div class="m-chart-title">Daily Mark-to-Market — Combined P&amp;L</div>
+      <div class="m-chart-leg">
+        <div class="m-leg-item" style="color:${GREEN}"><div style="width:16px;height:0;border-top:1.5px dashed ${GREEN}"></div>${t.long_stock} (Long)</div>
+        <div class="m-leg-item" style="color:${RED}"><div style="width:16px;height:0;border-top:1.5px dashed ${RED}"></div>${t.short_stock} (Short)</div>
+        <div class="m-leg-item" style="color:#fff"><div style="width:16px;height:3px;background:#fff"></div>Combined P&amp;L</div>
+      </div>
+      <div class="m-chart-wrap"><canvas id="pairChart"></canvas></div>
+    </div>
+  `;
+
+  if(pairChart){pairChart.destroy();pairChart=null;}
+  const ctx=document.getElementById('pairChart').getContext('2d');
+  const fmtTip=v=>(v>=0?'+':'−')+'₹'+Math.abs(Math.round(v)).toLocaleString('en-IN');
+
+  pairChart=new Chart(ctx,{type:'line',data:{
+    labels:t.chart_labels,
+    datasets:[
+      {label:'Combined P&L',data:t.combined_series,borderWidth:2.5,tension:.35,pointRadius:3,
+       pointBackgroundColor:t.combined_series.map(v=>v>=0?GREEN:RED),
+       pointBorderColor:t.combined_series.map(v=>v>=0?GREEN:RED),
+       fill:{target:'origin'},
+       segment:{borderColor:ctx=>segColor(ctx,GREEN,RED),backgroundColor:ctx=>segColor(ctx,GREEN_FILL,RED_FILL)},
+       order:1},
+      {label:`${t.long_stock} (Long)`,data:t.long_series,
+       borderColor:GREEN,borderWidth:1.5,borderDash:[4,3],
+       pointRadius:0,pointHoverRadius:3,pointHoverBackgroundColor:GREEN,pointHoverBorderColor:GREEN,
+       tension:.35,fill:false,order:2},
+      {label:`${t.short_stock} (Short)`,data:t.short_series,
+       borderColor:RED,borderWidth:1.5,borderDash:[4,3],
+       pointRadius:0,pointHoverRadius:3,pointHoverBackgroundColor:RED,pointHoverBorderColor:RED,
+       tension:.35,fill:false,order:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{
+        backgroundColor:'#111',borderColor:'#333',borderWidth:1,
+        titleColor:'#999',bodyColor:'#fff',padding:12,displayColors:false,
+        titleFont:{family:"'JetBrains Mono',monospace",size:10},
+        bodyFont:{family:"'JetBrains Mono',monospace",size:11},
+        itemSort:(a,b)=>{const o={1:0,2:1,0:2};return o[a.datasetIndex]-o[b.datasetIndex];},
+        callbacks:{
+          title:items=>items[0].label,
+          label:item=>`${item.dataset.label}:  ${fmtTip(item.parsed.y)}`,
+          labelTextColor:item=>item.parsed.y>=0?GREEN:RED
+        }
+      }},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#444',maxRotation:45,autoSkip:true,maxTicksLimit:window.innerWidth<600?6:10},border:{display:false}},
+        y:{grid:{color:'rgba(255,255,255,.05)'},border:{display:false},ticks:{color:'#444',callback:v=>'₹'+(v/1000).toFixed(0)+'k'}}
+      }
+    }
+  });
+
+  const overlay=document.getElementById('overlay');
+  overlay.classList.add('open');
+  overlay.scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow='';
+  document.querySelectorAll('#tBody tr').forEach(r=>r.classList.remove('row-active'));
+}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+</script>
+</body>
+</html>
