@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vega Salus Finance — May 2026 Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #000000;
+    --surface:   #0a0a0a;
+    --border:    #1a1a1a;
+    --border2:   #222222;
+    --text:      #ffffff;
+    --muted:     #555555;
+    --dim:       #333333;
+    --green:     #22c55e;
+    --red:       #ef4444;
+    --green-dim: #14532d;
+    --red-dim:   #7f1d1d;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Syne', sans-serif;
+    --accent:    #888888;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .header-left .brand {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .header-left .title {
+    font-family: var(--sans);
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .header-right {
+    text-align: right;
+  }
+  .header-right .series-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .header-right .dates {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ── LAYOUT ── */
+  .main {
+    padding: 32px 40px;
+    max-width: 1400px;
+  }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    border: 1px solid var(--border);
+    margin-bottom: 32px;
+    background: var(--border);
+  }
+  .kpi-card {
+    background: var(--bg);
+    padding: 20px 22px;
+    position: relative;
+  }
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 20px; bottom: 20px; right: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .kpi-card:last-child::after { display: none; }
+  .kpi-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-family: var(--sans);
+    font-weight: 500;
+  }
+  .kpi-value {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .kpi-sub {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+  }
+  .green { color: var(--green); }
+  .red   { color: var(--red); }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── CHARTS ROW ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .chart-panel {
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+  .chart-panel canvas {
+    display: block;
+    width: 100% !important;
+  }
+
+  /* ── TRADE TABLE ── */
+  .table-panel {
+    border: 1px solid var(--border);
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+  .trade-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .trade-table thead th {
+    background: var(--surface);
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .trade-table thead th.right { text-align: right; }
+  .trade-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .trade-table tbody tr:last-child { border-bottom: none; }
+  .trade-table tbody tr:hover { background: var(--surface); }
+  .trade-table tbody td {
+    padding: 11px 14px;
+    white-space: nowrap;
+  }
+  .trade-table tbody td.right { text-align: right; }
+  .pair-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pair-num {
+    font-size: 9px;
+    color: var(--muted);
+    min-width: 24px;
+  }
+  .pair-stocks {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .long-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .short-tag {
+    font-size: 10px;
+    color: #888;
+  }
+  .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    border-radius: 2px;
+  }
+  .badge-win  { background: var(--green-dim); color: var(--green); }
+  .badge-loss { background: var(--red-dim);   color: var(--red); }
+  .net-pnl-cell {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+  }
+  .chg-cell {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    width: 100%;
+    max-width: 860px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 2;
+  }
+  .modal-title {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+  }
+  .modal-subtitle {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .modal-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 6px 12px;
+    font-family: var(--mono);
+    transition: all 0.12s;
+  }
+  .modal-close:hover { border-color: var(--text); color: var(--text); }
+  .modal-body {
+    padding: 24px;
+  }
+
+  /* modal rows */
+  .modal-legs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .leg-box {
+    border: 1px solid var(--border);
+    padding: 16px;
+  }
+  .leg-title {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-family: var(--sans);
+    font-weight: 600;
+  }
+  .leg-stock {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .leg-rows {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+  }
+  .leg-row-label {
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .leg-row-val {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .modal-pnl-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    background: var(--border);
+    gap: 1px;
+  }
+  .mpnl-cell {
+    background: var(--bg);
+    padding: 14px 16px;
+  }
+  .mpnl-label {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-family: var(--sans);
+    font-weight: 500;
+  }
+  .mpnl-val {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* charges grid */
+  .charges-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .chg-box {
+    border: 1px solid var(--border);
+    padding: 14px;
+  }
+  .chg-box-title {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: var(--sans);
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .chg-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    font-size: 11px;
+  }
+  .chg-row-label { color: var(--muted); }
+  .chg-row-val   { font-weight: 500; }
+  .chg-row.total {
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    padding-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--red);
+  }
+  .interest-note {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* modal chart */
+  .modal-chart-panel {
+    border: 1px solid var(--border);
+    padding: 16px;
+  }
+  .modal-chart-title {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: var(--sans);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 40px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="brand">Vega Salus Finance · Stat Arb Portfolio</div>
+    <div class="title">May 2026 Performance</div>
+  </div>
+  <div class="header-right">
+    <div class="series-label">May Series · NSE F&amp;O</div>
+    <div class="dates">30 Apr – 26 May 2026</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Strategy Return</div>
+      <div class="kpi-value green">+4.33%</div>
+      <div class="kpi-sub">on ₹50L capital</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Nifty 50 Return</div>
+      <div class="kpi-value red">-0.35%</div>
+      <div class="kpi-sub">30-Apr to 26-May</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Net P&amp;L</div>
+      <div class="kpi-value green">₹2,16,509</div>
+      <div class="kpi-sub">after all charges</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Gross P&amp;L</div>
+      <div class="kpi-value">₹2,93,546</div>
+      <div class="kpi-sub">before charges</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Charges</div>
+      <div class="kpi-value red">₹77,037</div>
+      <div class="kpi-sub">26.3% of gross</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Win Rate</div>
+      <div class="kpi-value">10<span style="font-size:14px;color:var(--muted)">/15</span></div>
+      <div class="kpi-sub">67% of pairs profitable</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="charts-row">
+    <div class="chart-panel">
+      <div class="section-header">Portfolio vs Nifty 50 — Equity Curve (₹50L base)</div>
+      <canvas id="equityChart" height="220"></canvas>
+    </div>
+    <div class="chart-panel">
+      <div class="section-header">Daily MTM P&amp;L</div>
+      <canvas id="dailyChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- TRADE TABLE -->
+  <div class="section-header">Trade Summary — 15 Pairs · Click any row for detailed breakdown</div>
+  <div class="table-panel">
+    <table class="trade-table">
+      <thead>
+        <tr>
+          <th>Pair</th>
+          <th>Entry</th>
+          <th>Exit</th>
+          <th class="right">Days</th>
+          <th class="right">Gross Long</th>
+          <th class="right">Gross Short</th>
+          <th class="right">Gross Total</th>
+          <th class="right">Charges</th>
+          <th class="right">Net P&amp;L</th>
+          <th class="right">Result</th>
+        </tr>
+      </thead>
+      <tbody id="tradeTableBody"></tbody>
+    </table>
+  </div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>Vega Salus Finance · NSE F&amp;O Stat Arb · May 2026 Series</span>
+  <span>Long: MTF Equity · Short: Equity Futures · Charges: Zerodha schedule</span>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">—</div>
+        <div class="modal-subtitle" id="modalSubtitle">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕ Close</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const TRADES = [{"pair_id": 1, "long_stock": "ASTRAL", "short_stock": "TORNTPHARM", "entry_date": "11-May-26", "exit_date": "26-May-26", "long_entry": 1572.1, "long_exit": 1572.3, "long_qty": 360, "short_entry": 4517.1, "short_cover": 4447.0, "short_lot": 125, "gross_long": 72.0, "gross_short": 8762.5, "gross_total": 8834.5, "futures_chg": 366.15, "mtf_chg": 3897.17, "fc_detail": {"brokerage": 40, "stt": 282.32, "transaction": 20.51, "stamp": 11.12, "sebi": 1.12, "gst": 11.09}, "mc_detail": {"brokerage": 40, "stt": 1131.98, "transaction": 34.75, "stamp": 84.89, "sebi": 1.13, "gst": 13.66, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 2540.01, "margin_pct": 25.2, "funded": 423335.09, "cal_days": 15}, "total_charges": 4263.32, "net_pnl": 4571.18, "daily_cum": [{"date": "11-May", "cum": 0}, {"date": "12-May", "cum": 880.0}, {"date": "13-May", "cum": 17547.0}, {"date": "14-May", "cum": 10262.0}, {"date": "15-May", "cum": 6257.0}, {"date": "18-May", "cum": 5921.0}, {"date": "19-May", "cum": -37227.0}, {"date": "20-May", "cum": -35237.0}, {"date": "21-May", "cum": -27169.0}, {"date": "22-May", "cum": -7082.0}, {"date": "25-May", "cum": -14065.0}, {"date": "26-May", "cum": 8835.0}], "hold_days": 11, "margin": 225855.0}, {"pair_id": 3, "long_stock": "BRITANNIA", "short_stock": "VOLTAS", "entry_date": "11-May-26", "exit_date": "26-May-26", "long_entry": 5410.5, "long_exit": 5350.0, "long_qty": 91, "short_entry": 1306.5, "short_cover": 1272.9, "short_lot": 375, "gross_long": -5505.5, "gross_short": 12600.0, "gross_total": 7094.5, "futures_chg": 323.74, "mtf_chg": 3474.13, "fc_detail": {"brokerage": 40, "stt": 244.97, "transaction": 17.7, "stamp": 9.55, "sebi": 0.97, "gst": 10.56}, "mc_detail": {"brokerage": 40, "stt": 979.21, "transaction": 30.06, "stamp": 73.85, "sebi": 0.98, "gst": 12.79, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 2286.5, "margin_pct": 22.6, "funded": 381083.16, "cal_days": 15}, "total_charges": 3797.87, "net_pnl": 3296.63, "daily_cum": [{"date": "11-May", "cum": 0}, {"date": "12-May", "cum": 6876.0}, {"date": "13-May", "cum": 11070.0}, {"date": "14-May", "cum": 1417.0}, {"date": "15-May", "cum": 28016.0}, {"date": "18-May", "cum": 17407.0}, {"date": "19-May", "cum": 2009.0}, {"date": "20-May", "cum": -1994.0}, {"date": "21-May", "cum": 5322.0}, {"date": "22-May", "cum": 7211.0}, {"date": "25-May", "cum": 839.0}, {"date": "26-May", "cum": 7094.0}], "hold_days": 11, "margin": 195975.0}, {"pair_id": 7, "long_stock": "NBCC", "short_stock": "GRASIM", "entry_date": "07-May-26", "exit_date": "26-May-26", "long_entry": 96.85, "long_exit": 95.9, "long_qty": 7643, "short_entry": 2960.6, "short_cover": 3164.9, "short_lot": 250, "gross_long": -7260.85, "gross_short": -51075.0, "gross_total": -58335.85, "futures_chg": 467.98, "mtf_chg": 5714.64, "fc_detail": {"brokerage": 40, "stt": 370.07, "transaction": 28.02, "stamp": 15.82, "sebi": 1.53, "gst": 12.52}, "mc_detail": {"brokerage": 40, "stt": 1473.19, "transaction": 45.23, "stamp": 111.03, "sebi": 1.47, "gst": 15.61, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 3977.37, "margin_pct": 29.3, "funded": 523338.76, "cal_days": 19}, "total_charges": 6182.62, "net_pnl": -64518.47, "daily_cum": [{"date": "07-May", "cum": 0}, {"date": "08-May", "cum": 26967.0}, {"date": "11-May", "cum": -14689.0}, {"date": "12-May", "cum": -17624.0}, {"date": "13-May", "cum": -11307.0}, {"date": "14-May", "cum": -4919.0}, {"date": "15-May", "cum": -16458.0}, {"date": "18-May", "cum": -35467.0}, {"date": "19-May", "cum": -22464.0}, {"date": "20-May", "cum": -31974.0}, {"date": "21-May", "cum": -77366.0}, {"date": "22-May", "cum": -64190.0}, {"date": "25-May", "cum": -53209.0}, {"date": "26-May", "cum": -58336.0}], "hold_days": 13, "margin": 296060.0}, {"pair_id": 12, "long_stock": "DIXON", "short_stock": "GODFRYPHLP", "entry_date": "08-May-26", "exit_date": "22-May-26", "long_entry": 10803.0, "long_exit": 11712.0, "long_qty": 62, "short_entry": 2424.8, "short_cover": 2325.9, "short_lot": 275, "gross_long": 56358.0, "gross_short": 27197.5, "gross_total": 83555.5, "futures_chg": 423.16, "mtf_chg": 4298.37, "fc_detail": {"brokerage": 40, "stt": 333.41, "transaction": 23.91, "stamp": 12.79, "sebi": 1.31, "gst": 11.74}, "mc_detail": {"brokerage": 40, "stt": 1395.93, "transaction": 42.86, "stamp": 100.47, "sebi": 1.4, "gst": 15.17, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 2651.82, "margin_pct": 29.3, "funded": 473538.7, "cal_days": 14}, "total_charges": 4721.53, "net_pnl": 78833.97, "daily_cum": [{"date": "08-May", "cum": 0}, {"date": "11-May", "cum": 7070.0}, {"date": "12-May", "cum": -18268.0}, {"date": "13-May", "cum": 21607.0}, {"date": "14-May", "cum": 9305.0}, {"date": "15-May", "cum": 10885.0}, {"date": "18-May", "cum": 28797.0}, {"date": "19-May", "cum": 38538.0}, {"date": "20-May", "cum": 44890.0}, {"date": "21-May", "cum": 59202.0}, {"date": "22-May", "cum": 83556.0}], "hold_days": 10, "margin": 266728.0}, {"pair_id": 18, "long_stock": "TRENT", "short_stock": "NUVAMA", "entry_date": "08-May-26", "exit_date": "22-May-26", "long_entry": 4242.3, "long_exit": 4285.0, "long_qty": 193, "short_entry": 1631.5, "short_cover": 1489.2, "short_lot": 500, "gross_long": 8241.1, "gross_short": 71150.0, "gross_total": 79391.1, "futures_chg": 505.5, "mtf_chg": 5261.44, "fc_detail": {"brokerage": 40, "stt": 407.88, "transaction": 28.55, "stamp": 14.89, "sebi": 1.56, "gst": 12.62}, "mc_detail": {"brokerage": 40, "stt": 1645.77, "transaction": 50.53, "stamp": 122.81, "sebi": 1.65, "gst": 16.59, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 3333.35, "margin_pct": 27.3, "funded": 595241.36, "cal_days": 14}, "total_charges": 5766.94, "net_pnl": 73624.16, "daily_cum": [{"date": "08-May", "cum": 0}, {"date": "11-May", "cum": 12111.0}, {"date": "12-May", "cum": 11985.0}, {"date": "13-May", "cum": 32841.0}, {"date": "14-May", "cum": 62589.0}, {"date": "15-May", "cum": 59287.0}, {"date": "18-May", "cum": 55420.0}, {"date": "19-May", "cum": 48819.0}, {"date": "20-May", "cum": 50167.0}, {"date": "21-May", "cum": 52373.0}, {"date": "22-May", "cum": 79391.0}], "hold_days": 10, "margin": 326300.0}, {"pair_id": 19, "long_stock": "CHOLAFIN", "short_stock": "COLPAL", "entry_date": "15-May-26", "exit_date": "26-May-26", "long_entry": 1546.3, "long_exit": 1568.0, "long_qty": 315, "short_entry": 2160.0, "short_cover": 2089.5, "short_lot": 225, "gross_long": 6835.5, "gross_short": 15862.5, "gross_total": 22698.0, "futures_chg": 321.38, "mtf_chg": 2763.93, "fc_detail": {"brokerage": 40, "stt": 243.0, "transaction": 17.5, "stamp": 9.4, "sebi": 0.96, "gst": 10.52}, "mc_detail": {"brokerage": 40, "stt": 981.0, "transaction": 30.12, "stamp": 73.06, "sebi": 0.98, "gst": 12.8, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 1575.23, "margin_pct": 26.5, "funded": 358007.11, "cal_days": 11}, "total_charges": 3085.31, "net_pnl": 19612.69, "daily_cum": [{"date": "15-May", "cum": 0}, {"date": "18-May", "cum": -3816.0}, {"date": "19-May", "cum": -17361.0}, {"date": "20-May", "cum": -14346.0}, {"date": "21-May", "cum": -14427.0}, {"date": "22-May", "cum": -1350.0}, {"date": "25-May", "cum": 28256.0}, {"date": "26-May", "cum": 22698.0}], "hold_days": 7, "margin": 194400.0}, {"pair_id": 21, "long_stock": "SWIGGY", "short_stock": "SRF", "entry_date": "11-May-26", "exit_date": "26-May-26", "long_entry": 263.7, "long_exit": 255.0, "long_qty": 2123, "short_entry": 2798.5, "short_cover": 2749.4, "short_lot": 200, "gross_long": -18470.1, "gross_short": 9820.0, "gross_total": -8650.1, "futures_chg": 363.32, "mtf_chg": 3746.15, "fc_detail": {"brokerage": 40, "stt": 279.85, "transaction": 20.31, "stamp": 11.0, "sebi": 1.11, "gst": 11.05}, "mc_detail": {"brokerage": 40, "stt": 1101.2, "transaction": 33.81, "stamp": 83.98, "sebi": 1.1, "gst": 13.48, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 2421.85, "margin_pct": 27.9, "funded": 403641.11, "cal_days": 15}, "total_charges": 4109.47, "net_pnl": -12759.57, "daily_cum": [{"date": "11-May", "cum": 0}, {"date": "12-May", "cum": -1206.0}, {"date": "13-May", "cum": -2056.0}, {"date": "14-May", "cum": -1041.0}, {"date": "15-May", "cum": 4179.0}, {"date": "18-May", "cum": 11339.0}, {"date": "19-May", "cum": 25891.0}, {"date": "20-May", "cum": 21436.0}, {"date": "21-May", "cum": 8127.0}, {"date": "22-May", "cum": 2629.0}, {"date": "25-May", "cum": -11479.0}, {"date": "26-May", "cum": -8650.0}], "hold_days": 11, "margin": 223880.0}, {"pair_id": 25, "long_stock": "AMBUJACEM", "short_stock": "HINDUNILVR", "entry_date": "05-May-26", "exit_date": "26-May-26", "long_entry": 433.1, "long_exit": 450.4, "long_qty": 1613, "short_entry": 2327.4, "short_cover": 2204.0, "short_lot": 300, "gross_long": 27904.9, "gross_short": 37020.0, "gross_total": 64924.9, "futures_chg": 440.49, "mtf_chg": 6076.37, "fc_detail": {"brokerage": 40, "stt": 349.11, "transaction": 24.88, "stamp": 13.22, "sebi": 1.36, "gst": 11.92}, "mc_detail": {"brokerage": 40, "stt": 1425.09, "transaction": 43.75, "stamp": 104.79, "sebi": 1.43, "gst": 15.33, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 4395.25, "margin_pct": 25.1, "funded": 523244.13, "cal_days": 21}, "total_charges": 6516.86, "net_pnl": 58408.04, "daily_cum": [{"date": "05-May", "cum": 0}, {"date": "06-May", "cum": 25349.0}, {"date": "07-May", "cum": 44868.0}, {"date": "08-May", "cum": 29976.0}, {"date": "11-May", "cum": 11060.0}, {"date": "12-May", "cum": 9700.0}, {"date": "13-May", "cum": 26579.0}, {"date": "14-May", "cum": 41030.0}, {"date": "15-May", "cum": 17608.0}, {"date": "18-May", "cum": 17202.0}, {"date": "19-May", "cum": 26092.0}, {"date": "20-May", "cum": 30833.0}, {"date": "21-May", "cum": 49924.0}, {"date": "22-May", "cum": 42382.0}, {"date": "25-May", "cum": 53545.0}, {"date": "26-May", "cum": 64925.0}], "hold_days": 15, "margin": 279288.0}, {"pair_id": 27, "long_stock": "EICHERMOT", "short_stock": "MARICO", "entry_date": "11-May-26", "exit_date": "26-May-26", "long_entry": 7202.5, "long_exit": 7356.0, "long_qty": 141, "short_entry": 842.55, "short_cover": 826.65, "short_lot": 1200, "gross_long": 21643.5, "gross_short": 19080.0, "gross_total": 40723.5, "futures_chg": 618.19, "mtf_chg": 6986.35, "fc_detail": {"brokerage": 40, "stt": 505.53, "transaction": 36.66, "stamp": 19.84, "sebi": 2.0, "gst": 14.16}, "mc_detail": {"brokerage": 40, "stt": 2052.75, "transaction": 63.02, "stamp": 152.33, "sebi": 2.05, "gst": 18.91, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 4606.55, "margin_pct": 24.4, "funded": 767757.69, "cal_days": 15}, "total_charges": 7604.54, "net_pnl": 33118.96, "daily_cum": [{"date": "11-May", "cum": 0}, {"date": "12-May", "cum": 4273.0}, {"date": "13-May", "cum": -21591.0}, {"date": "14-May", "cum": -14699.0}, {"date": "15-May", "cum": -24828.0}, {"date": "18-May", "cum": -30260.0}, {"date": "19-May", "cum": -31800.0}, {"date": "20-May", "cum": -44853.0}, {"date": "21-May", "cum": -30940.0}, {"date": "22-May", "cum": -9441.0}, {"date": "25-May", "cum": 52862.0}, {"date": "26-May", "cum": 40723.0}], "hold_days": 11, "margin": 404424.0}, {"pair_id": 28, "long_stock": "DALBHARAT", "short_stock": "INDIGO", "entry_date": "15-May-26", "exit_date": "26-May-26", "long_entry": 1727.5, "long_exit": 1786.0, "long_qty": 375, "short_entry": 4314.9, "short_cover": 4483.0, "short_lot": 150, "gross_long": 21937.5, "gross_short": -25215.0, "gross_total": -3277.5, "futures_chg": 414.32, "mtf_chg": 3705.44, "fc_detail": {"brokerage": 40, "stt": 323.62, "transaction": 24.15, "stamp": 13.45, "sebi": 1.32, "gst": 11.78}, "mc_detail": {"brokerage": 40, "stt": 1317.56, "transaction": 40.45, "stamp": 97.17, "sebi": 1.32, "gst": 14.72, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 2143.48, "margin_pct": 24.8, "funded": 487155.0, "cal_days": 11}, "total_charges": 4119.76, "net_pnl": -7397.26, "daily_cum": [{"date": "15-May", "cum": 0}, {"date": "18-May", "cum": 292.0}, {"date": "19-May", "cum": 7553.0}, {"date": "20-May", "cum": -217.0}, {"date": "21-May", "cum": -5602.0}, {"date": "22-May", "cum": 6982.0}, {"date": "25-May", "cum": 7613.0}, {"date": "26-May", "cum": -3278.0}], "hold_days": 7, "margin": 258894.0}, {"pair_id": 34, "long_stock": "CANBK", "short_stock": "MOTHERSON", "entry_date": "11-May-26", "exit_date": "26-May-26", "long_entry": 129.43, "long_exit": 133.45, "long_qty": 6192, "short_entry": 130.3, "short_cover": 135.9, "short_lot": 6150, "gross_long": 24891.84, "gross_short": -34440.0, "gross_total": -9548.16, "futures_chg": 501.87, "mtf_chg": 5469.96, "fc_detail": {"brokerage": 40, "stt": 400.67, "transaction": 29.96, "stamp": 16.72, "sebi": 1.64, "gst": 12.89}, "mc_detail": {"brokerage": 40, "stt": 1627.75, "transaction": 49.97, "stamp": 120.21, "sebi": 1.63, "gst": 16.49, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 3563.16, "margin_pct": 25.9, "funded": 593860.04, "cal_days": 15}, "total_charges": 5971.83, "net_pnl": -15519.99, "daily_cum": [{"date": "11-May", "cum": 0}, {"date": "12-May", "cum": 40737.0}, {"date": "13-May", "cum": 23424.0}, {"date": "14-May", "cum": 34499.0}, {"date": "15-May", "cum": -6084.0}, {"date": "18-May", "cum": -18517.0}, {"date": "19-May", "cum": -27628.0}, {"date": "20-May", "cum": -22460.0}, {"date": "21-May", "cum": -50245.0}, {"date": "22-May", "cum": -43592.0}, {"date": "25-May", "cum": -8062.0}, {"date": "26-May", "cum": -9548.0}], "hold_days": 11, "margin": 320538.00000000006}, {"pair_id": 37, "long_stock": "PETRONET", "short_stock": "DIVISLAB", "entry_date": "14-May-26", "exit_date": "26-May-26", "long_entry": 271.75, "long_exit": 280.95, "long_qty": 2548, "short_entry": 6921.5, "short_cover": 6743.0, "short_lot": 100, "gross_long": 23441.6, "gross_short": 17850.0, "gross_total": 41291.6, "futures_chg": 437.88, "mtf_chg": 4132.2, "fc_detail": {"brokerage": 40, "stt": 346.07, "transaction": 25.01, "stamp": 13.49, "sebi": 1.37, "gst": 11.95}, "mc_detail": {"brokerage": 40, "stt": 1408.28, "transaction": 43.23, "stamp": 103.86, "sebi": 1.41, "gst": 15.24, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 2469.44, "margin_pct": 25.7, "funded": 514467.32, "cal_days": 12}, "total_charges": 4570.08, "net_pnl": 36721.52, "daily_cum": [{"date": "14-May", "cum": 0}, {"date": "15-May", "cum": -4666.0}, {"date": "18-May", "cum": -8167.0}, {"date": "19-May", "cum": -15867.0}, {"date": "20-May", "cum": -15241.0}, {"date": "21-May", "cum": 1636.0}, {"date": "22-May", "cum": 4979.0}, {"date": "25-May", "cum": 43254.0}, {"date": "26-May", "cum": 41292.0}], "hold_days": 8, "margin": 276860.0}, {"pair_id": 44, "long_stock": "TATASTEEL", "short_stock": "NAM-INDIA", "entry_date": "06-May-26", "exit_date": "26-May-26", "long_entry": 215.47, "long_exit": 210.44, "long_qty": 3174, "short_entry": 1094.2, "short_cover": 1088.7, "short_lot": 625, "gross_long": -15965.22, "gross_short": 3437.5, "gross_total": -12527.72, "futures_chg": 433.82, "mtf_chg": 5717.28, "fc_detail": {"brokerage": 40, "stt": 341.94, "transaction": 24.97, "stamp": 13.61, "sebi": 1.36, "gst": 11.94}, "mc_detail": {"brokerage": 40, "stt": 1351.84, "transaction": 41.5, "stamp": 102.59, "sebi": 1.35, "gst": 14.91, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 4114.35, "margin_pct": 24.8, "funded": 514294.14, "cal_days": 20}, "total_charges": 6151.1, "net_pnl": -18678.82, "daily_cum": [{"date": "06-May", "cum": 0}, {"date": "07-May", "cum": -3108.0}, {"date": "08-May", "cum": -8861.0}, {"date": "11-May", "cum": 7115.0}, {"date": "12-May", "cum": 24049.0}, {"date": "13-May", "cum": 34797.0}, {"date": "14-May", "cum": 19152.0}, {"date": "15-May", "cum": 348.0}, {"date": "18-May", "cum": -11282.0}, {"date": "19-May", "cum": -12115.0}, {"date": "20-May", "cum": -32352.0}, {"date": "21-May", "cum": -12244.0}, {"date": "22-May", "cum": -11308.0}, {"date": "25-May", "cum": -20351.0}, {"date": "26-May", "cum": -12528.0}], "hold_days": 14, "margin": 273550.0}, {"pair_id": 46, "long_stock": "BHARTIARTL", "short_stock": "ASIANPAINT", "entry_date": "11-May-26", "exit_date": "26-May-26", "long_entry": 1759.0, "long_exit": 1847.0, "long_qty": 365, "short_entry": 2566.0, "short_cover": 2644.4, "short_lot": 250, "gross_long": 32120.0, "gross_short": -19600.0, "gross_total": 12520.0, "futures_chg": 410.84, "mtf_chg": 4541.28, "fc_detail": {"brokerage": 40, "stt": 320.75, "transaction": 23.84, "stamp": 13.22, "sebi": 1.3, "gst": 11.73}, "mc_detail": {"brokerage": 40, "stt": 1316.19, "transaction": 40.41, "stamp": 96.31, "sebi": 1.32, "gst": 14.71, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 2981.61, "margin_pct": 22.6, "funded": 496935.09, "cal_days": 15}, "total_charges": 4952.12, "net_pnl": 7567.88, "daily_cum": [{"date": "11-May", "cum": 0}, {"date": "12-May", "cum": 14322.0}, {"date": "13-May", "cum": -1877.0}, {"date": "14-May", "cum": 31393.0}, {"date": "15-May", "cum": 43536.0}, {"date": "18-May", "cum": 53371.0}, {"date": "19-May", "cum": 47718.0}, {"date": "20-May", "cum": 45103.0}, {"date": "21-May", "cum": 37900.0}, {"date": "22-May", "cum": 22576.0}, {"date": "25-May", "cum": 19317.0}, {"date": "26-May", "cum": 12520.0}], "hold_days": 11, "margin": 256600.0}, {"pair_id": 49, "long_stock": "VMM", "short_stock": "LICHSGFIN", "entry_date": "06-May-26", "exit_date": "26-May-26", "long_entry": 124.2, "long_exit": 121.15, "long_qty": 4688, "short_entry": 582.15, "short_cover": 543.0, "short_lot": 1000, "gross_long": -14298.4, "gross_short": 39150.0, "gross_total": 24851.6, "futures_chg": 374.76, "mtf_chg": 4848.71, "fc_detail": {"brokerage": 40, "stt": 291.07, "transaction": 20.59, "stamp": 10.86, "sebi": 1.13, "gst": 11.11}, "mc_detail": {"brokerage": 40, "stt": 1150.2, "transaction": 35.31, "stamp": 87.34, "sebi": 1.15, "gst": 13.76, "dp": 15.34, "pledge_unpledge": 35.4, "interest": 3470.21, "margin_pct": 25.5, "funded": 433775.95, "cal_days": 20}, "total_charges": 5223.47, "net_pnl": 19628.13, "daily_cum": [{"date": "06-May", "cum": 0}, {"date": "07-May", "cum": 1519.0}, {"date": "08-May", "cum": -616.0}, {"date": "11-May", "cum": -13764.0}, {"date": "12-May", "cum": -6830.0}, {"date": "13-May", "cum": -25534.0}, {"date": "14-May", "cum": -8347.0}, {"date": "15-May", "cum": 10676.0}, {"date": "18-May", "cum": 24552.0}, {"date": "19-May", "cum": 26774.0}, {"date": "20-May", "cum": 25693.0}, {"date": "21-May", "cum": 40121.0}, {"date": "22-May", "cum": 31042.0}, {"date": "25-May", "cum": 23933.0}, {"date": "26-May", "cum": 24852.0}], "hold_days": 14, "margin": 232860.0}];
+const EQUITY = [{"date": "30-Apr", "val": 5000000.0}, {"date": "04-May", "val": 5000000.0}, {"date": "05-May", "val": 5000000.0}, {"date": "06-May", "val": 5025349.0}, {"date": "07-May", "val": 5043279.0}, {"date": "08-May", "val": 5047466.0}, {"date": "11-May", "val": 5008904.0}, {"date": "12-May", "val": 5068895.0}, {"date": "13-May", "val": 5105500.0}, {"date": "14-May", "val": 5180642.0}, {"date": "15-May", "val": 5128755.0}, {"date": "18-May", "val": 5106793.0}, {"date": "19-May", "val": 5058929.0}, {"date": "20-May", "val": 5019449.0}, {"date": "21-May", "val": 5036613.0}, {"date": "22-May", "val": 5133297.0}, {"date": "25-May", "val": 5274910.0}, {"date": "26-May", "val": 5216509.0}];
+const NIFTY  = [{"date": "30-Apr", "val": 5000000.0}, {"date": "04-May", "val": 5025367.0}, {"date": "05-May", "val": 5007344.0}, {"date": "06-May", "val": 5069465.0}, {"date": "07-May", "val": 5068569.0}, {"date": "08-May", "val": 5037212.0}, {"date": "11-May", "val": 4962142.0}, {"date": "12-May", "val": 4871237.0}, {"date": "13-May", "val": 4878123.0}, {"date": "14-May", "val": 4935837.0}, {"date": "15-May", "val": 4926232.0}, {"date": "18-May", "val": 4927576.0}, {"date": "19-May", "val": 4920919.0}, {"date": "20-May", "val": 4929462.0}, {"date": "21-May", "val": 4928566.0}, {"date": "22-May", "val": 4942025.0}, {"date": "25-May", "val": 5007115.0}, {"date": "26-May", "val": 4982529.0}];
+const BARS   = [{"date": "30-Apr", "pnl": 0.0}, {"date": "04-May", "pnl": 0.0}, {"date": "05-May", "pnl": 0.0}, {"date": "06-May", "pnl": 25349.0}, {"date": "07-May", "pnl": 17930.0}, {"date": "08-May", "pnl": 4187.0}, {"date": "11-May", "pnl": -38562.0}, {"date": "12-May", "pnl": 59991.0}, {"date": "13-May", "pnl": 36605.0}, {"date": "14-May", "pnl": 75141.0}, {"date": "15-May", "pnl": -51887.0}, {"date": "18-May", "pnl": -21962.0}, {"date": "19-May", "pnl": -47864.0}, {"date": "20-May", "pnl": -39481.0}, {"date": "21-May", "pnl": 17164.0}, {"date": "22-May", "pnl": 96684.0}, {"date": "25-May", "pnl": 141613.0}, {"date": "26-May", "pnl": -58401.0}];
+
+// ── UTILS ────────────────────────────────────────────────────────────────────
+function inr(v, sign=false) {
+  const abs = Math.abs(v);
+  const formatted = '₹' + abs.toLocaleString('en-IN', {maximumFractionDigits:0});
+  if (sign && v > 0) return '+' + formatted;
+  if (v < 0) return '−' + formatted;
+  return formatted;
+}
+function pct(v) {
+  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+}
+function col(v) {
+  return v >= 0 ? '#22c55e' : '#ef4444';
+}
+
+// ── CHART DEFAULTS ───────────────────────────────────────────────────────────
+Chart.defaults.color = '#555555';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+const gridOpts = {
+  color: '#1a1a1a',
+  drawBorder: false,
+};
+const tickOpts = {
+  color: '#444444',
+  maxRotation: 0,
+};
+
+// ── EQUITY CHART ─────────────────────────────────────────────────────────────
+(function() {
+  const labels = EQUITY.map(d => d.date);
+  const strat  = EQUITY.map(d => d.val);
+  const nifty  = NIFTY.map(d => d.val);
+  new Chart(document.getElementById('equityChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Vega Salus',
+          data: strat,
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34,197,94,0.06)',
+          borderWidth: 1.5,
+          pointRadius: 2,
+          pointBackgroundColor: '#22c55e',
+          fill: true,
+          tension: 0.2,
+        },
+        {
+          label: 'Nifty 50',
+          data: nifty,
+          borderColor: '#444444',
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderDash: [4, 3],
+          pointRadius: 0,
+          fill: false,
+          tension: 0.2,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: {
+            color: '#555',
+            boxWidth: 20,
+            font: { size: 10 },
+            usePointStyle: true,
+            pointStyle: 'line',
+          }
+        },
+        tooltip: {
+          backgroundColor: '#0a0a0a',
+          borderColor: '#222',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#fff',
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': ' + inr(ctx.raw),
+          }
+        },
+      },
+      scales: {
+        x: { grid: gridOpts, ticks: { ...tickOpts, maxTicksLimit: 9 } },
+        y: {
+          grid: gridOpts,
+          ticks: {
+            ...tickOpts,
+            callback: v => '₹' + (v/100000).toFixed(1) + 'L'
+          }
+        },
+      }
+    }
+  });
+})();
+
+// ── DAILY BAR CHART ──────────────────────────────────────────────────────────
+(function() {
+  const active = BARS.filter(d => d.pnl !== 0);
+  const labels = active.map(d => d.date);
+  const vals   = active.map(d => d.pnl);
+  new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: vals,
+        backgroundColor: vals.map(v => v >= 0 ? 'rgba(34,197,94,0.75)' : 'rgba(239,68,68,0.75)'),
+        borderWidth: 0,
+        borderRadius: 1,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0a0a0a',
+          borderColor: '#222',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#fff',
+          callbacks: {
+            label: ctx => ' Daily P&L: ' + inr(ctx.raw, true),
+          }
+        },
+      },
+      scales: {
+        x: { grid: gridOpts, ticks: { ...tickOpts, maxRotation: 45 } },
+        y: {
+          grid: gridOpts,
+          ticks: {
+            ...tickOpts,
+            callback: v => (v >= 0 ? '+' : '') + '₹' + Math.abs(v/1000).toFixed(0) + 'k'
+          }
+        },
+      }
+    }
+  });
+})();
+
+// ── TRADE TABLE ───────────────────────────────────────────────────────────────
+const tbody = document.getElementById('tradeTableBody');
+TRADES.forEach((t, idx) => {
+  const win = t.net_pnl > 0;
+  const tr = document.createElement('tr');
+  tr.onclick = () => openModal(idx);
+  tr.innerHTML = `
+    <td>
+      <div class="pair-label">
+        <span class="pair-num">P${t.pair_id}</span>
+        <div class="pair-stocks">
+          <span class="long-tag">${t.long_stock}</span>
+          <span class="short-tag">↓ ${t.short_stock}</span>
+        </div>
+      </div>
+    </td>
+    <td>${t.entry_date}</td>
+    <td>${t.exit_date}</td>
+    <td class="right" style="color:#666">${t.hold_days}</td>
+    <td class="right" style="color:${col(t.gross_long)}">${inr(t.gross_long, true)}</td>
+    <td class="right" style="color:${col(t.gross_short)}">${inr(t.gross_short, true)}</td>
+    <td class="right" style="color:${col(t.gross_total)}">${inr(t.gross_total, true)}</td>
+    <td class="chg-cell">(${inr(t.total_charges)})</td>
+    <td class="net-pnl-cell" style="color:${col(t.net_pnl)}">${inr(t.net_pnl, true)}</td>
+    <td class="right"><span class="badge ${win ? 'badge-win' : 'badge-loss'}">${win ? 'PROFIT' : 'LOSS'}</span></td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+let modalChart = null;
+
+function openModal(idx) {
+  const t = TRADES[idx];
+  const win = t.net_pnl > 0;
+
+  document.getElementById('modalTitle').textContent =
+    t.long_stock + ' / ' + t.short_stock;
+  document.getElementById('modalSubtitle').textContent =
+    'Pair ' + t.pair_id + ' · ' + t.entry_date + ' → ' + t.exit_date +
+    ' · ' + t.hold_days + ' trading days';
+
+  const longPct  = ((t.long_exit - t.long_entry) / t.long_entry * 100).toFixed(2);
+  const shortPct = ((t.short_entry - t.short_cover) / t.short_entry * 100).toFixed(2);
+  const longVal  = (t.long_entry * t.long_qty).toLocaleString('en-IN',{maximumFractionDigits:0});
+  const shortVal = (t.short_entry * t.short_lot * 1).toLocaleString('en-IN',{maximumFractionDigits:0});
+
+  const fc = t.fc_detail;
+  const mc = t.mc_detail;
+
+  const bodyHTML = `
+    <!-- LEG BOXES -->
+    <div class="modal-legs">
+      <div class="leg-box">
+        <div class="leg-title">▲ Long Leg — MTF Equity</div>
+        <div class="leg-stock" style="color:var(--green)">${t.long_stock}</div>
+        <div class="leg-rows">
+          <span class="leg-row-label">Entry Price</span><span class="leg-row-val">₹${t.long_entry.toLocaleString('en-IN')}</span>
+          <span class="leg-row-label">Exit Price</span><span class="leg-row-val">₹${t.long_exit.toLocaleString('en-IN')}</span>
+          <span class="leg-row-label">Quantity</span><span class="leg-row-val">${t.long_qty.toLocaleString('en-IN')}</span>
+          <span class="leg-row-label">Position Value</span><span class="leg-row-val">₹${longVal}</span>
+          <span class="leg-row-label">MTF Margin</span><span class="leg-row-val">${mc.margin_pct}%</span>
+          <span class="leg-row-label">Funded Amt</span><span class="leg-row-val">₹${mc.funded.toLocaleString('en-IN',{maximumFractionDigits:0})}</span>
+          <span class="leg-row-label">Move</span><span class="leg-row-val" style="color:${col(t.gross_long)}">${(longPct>=0?'+':'')}${longPct}%</span>
+          <span class="leg-row-label">Gross P&amp;L</span><span class="leg-row-val" style="color:${col(t.gross_long)}">${inr(t.gross_long,true)}</span>
+        </div>
+      </div>
+      <div class="leg-box">
+        <div class="leg-title">▼ Short Leg — Equity Futures</div>
+        <div class="leg-stock" style="color:#ef4444">${t.short_stock}</div>
+        <div class="leg-rows">
+          <span class="leg-row-label">Short Entry</span><span class="leg-row-val">₹${t.short_entry.toLocaleString('en-IN')}</span>
+          <span class="leg-row-label">Cover Price</span><span class="leg-row-val">₹${t.short_cover.toLocaleString('en-IN')}</span>
+          <span class="leg-row-label">Lot Size</span><span class="leg-row-val">${t.short_lot.toLocaleString('en-IN')}</span>
+          <span class="leg-row-label">No. of Lots</span><span class="leg-row-val">1</span>
+          <span class="leg-row-label">Contract Value</span><span class="leg-row-val">₹${shortVal}</span>
+          <span class="leg-row-label">Cal. Days (Int.)</span><span class="leg-row-val">${mc.cal_days} days</span>
+          <span class="leg-row-label">Move</span><span class="leg-row-val" style="color:${col(t.gross_short)}">${(shortPct>=0?'+':'')}${shortPct}%</span>
+          <span class="leg-row-label">Gross P&amp;L</span><span class="leg-row-val" style="color:${col(t.gross_short)}">${inr(t.gross_short,true)}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P&L SUMMARY -->
+    <div class="modal-pnl-summary">
+      <div class="mpnl-cell">
+        <div class="mpnl-label">Gross P&amp;L</div>
+        <div class="mpnl-val" style="color:${col(t.gross_total)}">${inr(t.gross_total,true)}</div>
+      </div>
+      <div class="mpnl-cell">
+        <div class="mpnl-label">Futures Charges</div>
+        <div class="mpnl-val" style="color:var(--red)">(${inr(t.futures_chg)})</div>
+      </div>
+      <div class="mpnl-cell">
+        <div class="mpnl-label">MTF Charges</div>
+        <div class="mpnl-val" style="color:var(--red)">(${inr(t.mtf_chg)})</div>
+      </div>
+      <div class="mpnl-cell">
+        <div class="mpnl-label">Net P&amp;L</div>
+        <div class="mpnl-val" style="color:${col(t.net_pnl)};font-size:17px">${inr(t.net_pnl,true)}</div>
+      </div>
+    </div>
+
+    <!-- CHARGES BREAKDOWN -->
+    <div class="charges-section">
+      <div class="chg-box">
+        <div class="chg-box-title">Futures Leg — Charge Breakdown</div>
+        <div class="chg-row"><span class="chg-row-label">Brokerage (2 orders)</span><span class="chg-row-val">₹${fc.brokerage.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">STT (0.05% sell side)</span><span class="chg-row-val">₹${fc.stt.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Transaction (NSE 0.00183%)</span><span class="chg-row-val">₹${fc.transaction.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Stamp (0.002% buy)</span><span class="chg-row-val">₹${fc.stamp.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">SEBI (₹10/cr)</span><span class="chg-row-val">₹${fc.sebi.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">GST (18%)</span><span class="chg-row-val">₹${fc.gst.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row total"><span>Total</span><span>₹${t.futures_chg.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+      </div>
+      <div class="chg-box">
+        <div class="chg-box-title">MTF Leg — Charge Breakdown</div>
+        <div class="chg-row"><span class="chg-row-label">Brokerage (2 orders)</span><span class="chg-row-val">₹${mc.brokerage.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">STT (0.1% buy + sell)</span><span class="chg-row-val">₹${mc.stt.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Transaction (NSE 0.00307%)</span><span class="chg-row-val">₹${mc.transaction.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Stamp (0.015% buy)</span><span class="chg-row-val">₹${mc.stamp.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">SEBI (₹10/cr)</span><span class="chg-row-val">₹${mc.sebi.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">GST (18%)</span><span class="chg-row-val">₹${mc.gst.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">DP Charge</span><span class="chg-row-val">₹${mc.dp.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row"><span class="chg-row-label">Pledge + Unpledge</span><span class="chg-row-val">₹${mc.pledge_unpledge.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row" style="color:var(--red)"><span class="chg-row-label" style="color:var(--red)">MTF Interest (${mc.cal_days} days × 0.04%)</span><span class="chg-row-val">₹${mc.interest.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="chg-row total"><span>Total</span><span>₹${t.mtf_chg.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="interest-note">Interest on funded amt ₹${mc.funded.toLocaleString('en-IN',{maximumFractionDigits:0})} @ ${mc.margin_pct}% margin · T+1 to exit (calendar days)</div>
+      </div>
+    </div>
+
+    <!-- DAILY CHART -->
+    <div class="modal-chart-panel">
+      <div class="modal-chart-title">Cumulative Gross P&amp;L — Daily Mark to Market</div>
+      <canvas id="modalChart" height="140"></canvas>
+    </div>
+  `;
+
+  document.getElementById('modalBody').innerHTML = bodyHTML;
+  document.getElementById('modalOverlay').classList.add('active');
+
+  // render modal chart
+  if (modalChart) { modalChart.destroy(); modalChart = null; }
+  const cumLabels = t.daily_cum.map(d => d.date);
+  const cumVals   = t.daily_cum.map(d => d.cum);
+  const finalVal  = cumVals[cumVals.length - 1];
+  modalChart = new Chart(document.getElementById('modalChart'), {
+    type: 'line',
+    data: {
+      labels: cumLabels,
+      datasets: [{
+        data: cumVals,
+        borderColor: finalVal >= 0 ? '#22c55e' : '#ef4444',
+        backgroundColor: finalVal >= 0 ? 'rgba(34,197,94,0.07)' : 'rgba(239,68,68,0.07)',
+        borderWidth: 1.5,
+        pointRadius: 3,
+        pointBackgroundColor: cumVals.map(v => v >= 0 ? '#22c55e' : '#ef4444'),
+        fill: true,
+        tension: 0.25,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0a0a0a',
+          borderColor: '#222',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#fff',
+          callbacks: {
+            label: ctx => ' Cum. Gross P&L: ' + inr(ctx.raw, true),
+          }
+        },
+      },
+      scales: {
+        x: { grid: gridOpts, ticks: { ...tickOpts, maxRotation: 45 } },
+        y: {
+          grid: gridOpts,
+          ticks: {
+            ...tickOpts,
+            callback: v => (v >= 0 ? '+' : '') + '₹' + Math.abs(v/1000).toFixed(0) + 'k'
+          }
+        },
+      }
+    }
+  });
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  if (modalChart) { modalChart.destroy(); modalChart = null; }
+}
+
+function closeModalOnOverlay(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
