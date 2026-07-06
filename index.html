@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vega Salus Finance — Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px}
+.logo{font-size:22px;font-weight:700;letter-spacing:.02em;margin-bottom:6px}
+.sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#555;margin-bottom:48px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:#222;border:1px solid #222;width:100%;max-width:800px}
+.card{background:#0d0d0d;padding:24px 22px;cursor:pointer;transition:background .15s;text-decoration:none;display:block}
+.card:hover{background:#161616}
+.card-month{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#555;margin-bottom:10px}
+.card-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:14px}
+.card-ret{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.card-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:#555}
+.pos{color:#22c55e}.neg{color:#ef4444}
+.footer{margin-top:32px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#333;letter-spacing:.08em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="logo">Vega Salus Finance</div>
+<div class="sub">Statistical Arbitrage · Performance Reports</div>
+
+<div class="grid">
+  <!-- Add a new card block for each month below -->
+
+  <a class="card" href="Vega_Salus_Finance_June_2026.html">
+    <div class="card-month">June 2026 Series</div>
+    <div class="card-title">June Series</div>
+    <div class="card-ret pos">+4.59%</div>
+    <div class="card-sub">Net · 13 pairs · α +1.72% vs Nifty</div>
+  </a>
+
+  <a class="card" href="Vega_Salus_Finance_May_2026.html">
+    <div class="card-month">May 2026 Series</div>
+    <div class="card-title">May Series</div>
+    <div class="card-ret pos">+4.33%</div>
+    <div class="card-sub">Net · 15 pairs · α +4.68% vs Nifty</div>
+  </a>
+
+  <!-- PASTE NEXT MONTH CARD HERE -->
+
+</div>
+
+<div class="footer">Vega Salus Finance · Confidential</div>
+</body>
+</html>
